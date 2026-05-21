@@ -1,16 +1,23 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
 const ClientWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const pathname = usePathname();
+  const isStandaloneRoute = pathname === "/login" || pathname === "/register";
+
   return (
-    <div className="min-h-screen bg-yorusito-light text-yorusito-neutral">
-      <Header />
-      <main>{children}</main>
-      <Footer />
-    </div>
+    <AuthProvider>
+      <div className="flex min-h-screen flex-col bg-yorusito-light text-yorusito-neutral">
+        {!isStandaloneRoute && <Header />}
+        <main className="flex-1">{children}</main>
+        {!isStandaloneRoute && <Footer />}
+      </div>
+    </AuthProvider>
   );
 };
 

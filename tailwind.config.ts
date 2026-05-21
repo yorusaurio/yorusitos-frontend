@@ -16,7 +16,7 @@ export default {
           secondary: '#EC4899',    // Rosa moderno
           accent: '#10B981',       // Verde esmeralda
           neutral: '#374151',      // Gris oscuro
-          light: '#F9FAFB',        // Gris muy claro
+          light: '#FAF7F2',        // Crema claro
           dark: '#1F2937',         // Gris muy oscuro
         },
         brand: {

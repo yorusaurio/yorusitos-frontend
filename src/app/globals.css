@@ -2,119 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Variables de color para tema elegante */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
+  --accent: #000000;
+  --muted: #6b7280;
+  --border: #e5e7eb;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Reset y configuración base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* General Reset */
 body {
-  margin: 0;
-  font-family: 'Arial', sans-serif;
-  transition: background-color 0.3s, color 0.3s;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.light {
-  background-color: #ffffff;
-  color: #333333;
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
 }
 
-.dark {
-  background-color: #181818;
-  color: #f1f1f1;
-}
-
-/* Header Styles */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px;
-  background-color: #000000;
-  color: #ffffff;
-}
-
-.nav ul {
-  display: flex;
-  list-style: none;
-  gap: 20px;
-}
-
-.nav a {
-  text-decoration: none;
-  color: inherit;
-}
-
-.controls {
-  display: flex;
-  gap: 10px;
-}
-
-.theme-btn {
-  background-color: #f39c12;
-  color: #ffffff;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.theme-btn:hover {
-  background-color: #d35400;
-}
-
-/* Hero Section */
-.hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 50px 20px;
-}
-
-.hero-content h1 {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
-}
-
-.hero-content p {
-  font-size: 1.2rem;
-  margin-bottom: 30px;
-}
-
-.btn-cta {
-  background-color: #f39c12;
-  color: #ffffff;
-  padding: 10px 20px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  text-transform: uppercase;
-  font-weight: bold;
-}
-
-.btn-cta:hover {
-  background-color: #d35400;
-}
-
-/* Footer Styles */
-.footer {
-  text-align: center;
-  padding: 20px;
-  background-color: #000000;
-  color: #ffffff;
-}
-
-.footer p {
-  font-size: 0.9rem;
-  margin: 0;
+/* Utilidades personalizadas */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
 }

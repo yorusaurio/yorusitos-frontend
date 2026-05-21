@@ -14,7 +14,6 @@ import {
   faExpand,
   faStar,
   faShieldAlt,
-  faTruck,
   faCheckCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
@@ -32,6 +31,7 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [quantity, setQuantity] = useState<number>(1);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   const filteredProducts = product
     ? mockProducts.filter(
@@ -104,17 +104,17 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yorusito-light to-white">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
         <div className="text-center p-8">
           <div className="text-6xl mb-4">😔</div>
-          <h1 className="text-4xl font-bold text-yorusito-neutral mb-4">
+          <h1 className="text-4xl font-bold text-black mb-4">
             Producto no encontrado
           </h1>
-          <p className="text-gray-500 mb-8">
+          <p className="text-gray-600 mb-8">
             El producto que buscas no existe o ha sido movido.
           </p>
           <button
-            className="bg-gradient-to-r from-brand-500 to-yorusito-secondary text-white px-8 py-4 rounded-xl font-semibold hover:from-brand-600 hover:to-yorusito-secondary/90 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="bg-black text-white px-8 py-4 font-semibold hover:bg-gray-800 transition-all duration-300"
             onClick={() => router.back()}
           >
             <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
@@ -126,12 +126,12 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yorusito-light via-white to-brand-50">
+    <div className="min-h-screen bg-white">
       {/* Header con botón de volver */}
-      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <div className="sticky top-16 z-50 bg-white border-b-2 border-black shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <button
-            className="flex items-center gap-2 text-yorusito-neutral hover:text-brand-600 transition-colors font-medium"
+            className="flex items-center gap-2 text-black hover:text-gray-600 transition-colors font-bold"
             onClick={() => router.back()}
           >
             <FontAwesomeIcon icon={faArrowLeft} />
@@ -141,51 +141,50 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsFavorite(!isFavorite)}
-              className={`p-2 rounded-full transition-all duration-300 ${
+              className={`p-3 border-2 border-black transition-all duration-300 ${
                 isFavorite
-                  ? "text-red-500 bg-red-50 hover:bg-red-100"
-                  : "text-gray-400 hover:text-red-500 hover:bg-red-50"
+                  ? "bg-black text-white"
+                  : "bg-white text-black hover:bg-gray-100"
               }`}
             >
-              <FontAwesomeIcon icon={faHeart} className="text-xl" />
+              <FontAwesomeIcon icon={faHeart} className="text-lg" />
             </button>
             <button
               onClick={shareProduct}
-              className="p-2 rounded-full text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-all duration-300"
+              className="p-3 border-2 border-black bg-white text-black hover:bg-gray-100 transition-all duration-300"
             >
-              <FontAwesomeIcon icon={faShare} className="text-xl" />
+              <FontAwesomeIcon icon={faShare} className="text-lg" />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-6 pt-24 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           {/* Galería de imágenes */}
           <div className="space-y-6">
             <div className="relative group">
               <div
-                className="relative overflow-hidden rounded-2xl shadow-2xl cursor-pointer bg-white"
+                className="relative overflow-hidden border-2 border-black cursor-pointer bg-white"
                 style={{ aspectRatio: "1/1" }}
                 onClick={() => handleOpenModal(currentImage || product.images[0])}
               >
                 <img
                   src={currentImage || product.images[0]}
                   alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                <button className="absolute top-4 right-4 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300">
+                <button className="absolute top-4 right-4 bg-black text-white p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-gray-800">
                   <FontAwesomeIcon
                     icon={faExpand}
-                    className="text-yorusito-neutral"
+                    className="text-lg"
                   />
                 </button>
               </div>
 
-              {/* Indicador de descuento */}
-              <div className="absolute top-4 left-4 bg-gradient-to-r from-yorusito-secondary to-pink-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
-                ¡Nuevo!
+              {/* Indicador de nuevo */}
+              <div className="absolute top-4 left-4 bg-black text-white px-4 py-2 text-sm font-bold">
+                NUEVO
               </div>
             </div>
 
@@ -194,10 +193,10 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
               {product.images.map((img: string, index: number) => (
                 <div
                   key={index}
-                  className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden cursor-pointer border-3 transition-all duration-300 ${
+                  className={`flex-shrink-0 w-20 h-20 overflow-hidden cursor-pointer border-2 transition-all duration-300 ${
                     currentImage === img
-                      ? "border-brand-500 shadow-lg scale-105"
-                      : "border-gray-200 hover:border-brand-300"
+                      ? "border-black"
+                      : "border-gray-300 hover:border-gray-500"
                   }`}
                   onClick={() => setCurrentImage(img)}
                 >
@@ -215,39 +214,33 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
           <div className="space-y-8">
             {/* Info básica */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-yellow-500">
+              <div className="flex items-center gap-2">
                 {[...Array(5)].map((_, i) => (
-                  <FontAwesomeIcon key={i} icon={faStar} className="text-sm" />
+                  <FontAwesomeIcon key={i} icon={faStar} className="text-sm text-black" />
                 ))}
-                <span className="text-gray-500 text-sm ml-2">(125 reseñas)</span>
+                <span className="text-gray-600 text-sm ml-2">(125 reseñas)</span>
               </div>
 
-              <h1 className="text-4xl font-black text-yorusito-neutral leading-tight">
+              <h1 className="text-4xl md:text-5xl font-black text-black leading-tight">
                 {product.name}
               </h1>
 
-              <p className="text-lg text-gray-600 leading-relaxed">
+              <p className="text-lg text-gray-700 leading-relaxed">
                 {product.description}
               </p>
 
-              <div className="flex items-center gap-4">
-                <span className="text-3xl font-bold text-yorusito-accent">
+              <div className="flex items-baseline gap-4">
+                <span className="text-4xl font-black text-black">
                   S/ {product.price.toFixed(2)}
-                </span>
-                <span className="text-lg text-gray-400 line-through">
-                  S/ {(product.price * 1.3).toFixed(2)}
-                </span>
-                <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-sm font-semibold">
-                  -23%
                 </span>
               </div>
             </div>
 
             {/* Selección de colores */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold text-yorusito-neutral">
+            <div className="space-y-4 pb-6 border-b-2 border-gray-200">
+              <h3 className="text-lg font-bold text-black uppercase tracking-wider">
                 Color:{" "}
-                <span className="font-normal text-gray-600">{selectedColor}</span>
+                <span className="font-black">{selectedColor}</span>
               </h3>
               <div className="flex gap-3 flex-wrap">
                 {product.colors.map((color: string) => {
@@ -256,23 +249,23 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
                   return (
                     <button
                       key={color}
-                      className={`relative w-12 h-12 rounded-xl border-3 transition-all duration-300 hover:scale-110 ${
+                      className={`relative w-14 h-14 border-2 transition-all duration-300 ${
                         isSelected
-                          ? "border-brand-500 shadow-lg scale-105"
-                          : "border-gray-300 hover:border-brand-400"
+                          ? "border-black scale-105"
+                          : "border-gray-400 hover:border-gray-600"
                       }`}
                       style={{ backgroundColor: cssColor }}
                       onClick={() => setSelectedColor(color)}
                     >
                       {cssColor === "#FFFFFF" && (
-                        <div className="absolute inset-1 border border-gray-200 rounded-lg" />
+                        <div className="absolute inset-1 border border-gray-300" />
                       )}
                       {isSelected && (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <FontAwesomeIcon
                             icon={faCheckCircle}
-                            className={`text-lg ${
-                              cssColor === "#FFFFFF" ? "text-gray-600" : "text-white"
+                            className={`text-xl ${
+                              cssColor === "#FFFFFF" ? "text-black" : "text-white"
                             }`}
                           />
                         </div>
@@ -284,19 +277,87 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
             </div>
 
             {/* Selección de tallas */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold text-yorusito-neutral">
-                Talla:{" "}
-                <span className="font-normal text-gray-600">{selectedSize}</span>
-              </h3>
-              <div className="grid grid-cols-4 gap-3">
+            <div className="space-y-4 pb-6 border-b-2 border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-black uppercase tracking-wider">
+                  Talla:{" "}
+                  <span className="font-black">{selectedSize}</span>
+                </h3>
+                <button
+                  onClick={() => setShowSizeGuide(!showSizeGuide)}
+                  className="text-sm font-bold underline hover:no-underline transition-all"
+                >
+                  Guía de tallas
+                </button>
+              </div>
+              
+              {showSizeGuide && (
+                <div className="bg-gray-50 border-2 border-black p-6 space-y-4">
+                  <h4 className="font-bold text-lg mb-4">Tabla de Medidas (cm)</h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b-2 border-black">
+                          <th className="py-2 px-4 text-left font-bold">Talla</th>
+                          <th className="py-2 px-4 text-left font-bold">Pecho</th>
+                          <th className="py-2 px-4 text-left font-bold">Largo</th>
+                          <th className="py-2 px-4 text-left font-bold">Ancho</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-gray-300">
+                          <td className="py-2 px-4 font-semibold">XS</td>
+                          <td className="py-2 px-4">88-92</td>
+                          <td className="py-2 px-4">68-70</td>
+                          <td className="py-2 px-4">44-46</td>
+                        </tr>
+                        <tr className="border-b border-gray-300">
+                          <td className="py-2 px-4 font-semibold">S</td>
+                          <td className="py-2 px-4">92-96</td>
+                          <td className="py-2 px-4">70-72</td>
+                          <td className="py-2 px-4">46-48</td>
+                        </tr>
+                        <tr className="border-b border-gray-300">
+                          <td className="py-2 px-4 font-semibold">M</td>
+                          <td className="py-2 px-4">96-100</td>
+                          <td className="py-2 px-4">72-74</td>
+                          <td className="py-2 px-4">48-50</td>
+                        </tr>
+                        <tr className="border-b border-gray-300">
+                          <td className="py-2 px-4 font-semibold">L</td>
+                          <td className="py-2 px-4">100-104</td>
+                          <td className="py-2 px-4">74-76</td>
+                          <td className="py-2 px-4">50-52</td>
+                        </tr>
+                        <tr className="border-b border-gray-300">
+                          <td className="py-2 px-4 font-semibold">XL</td>
+                          <td className="py-2 px-4">104-108</td>
+                          <td className="py-2 px-4">76-78</td>
+                          <td className="py-2 px-4">52-54</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 px-4 font-semibold">2XL</td>
+                          <td className="py-2 px-4">108-112</td>
+                          <td className="py-2 px-4">78-80</td>
+                          <td className="py-2 px-4">54-56</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-4">
+                    * Las medidas pueden variar ligeramente según el diseño. Para mayor precisión, contáctanos por WhatsApp.
+                  </p>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                 {product.sizes.map((size: string) => (
                   <button
                     key={size}
-                    className={`py-3 px-4 rounded-xl border-2 font-semibold transition-all duration-300 ${
+                    className={`py-3 px-4 border-2 font-bold transition-all duration-300 ${
                       selectedSize === size
-                        ? "bg-brand-500 text-white border-brand-500 shadow-lg"
-                        : "bg-white text-yorusito-neutral border-gray-300 hover:border-brand-400 hover:bg-brand-50"
+                        ? "bg-black text-white border-black"
+                        : "bg-white text-black border-black hover:bg-gray-100"
                     }`}
                     onClick={() => setSelectedSize(size)}
                   >
@@ -307,52 +368,35 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
             </div>
 
             {/* Cantidad */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold text-yorusito-neutral">Cantidad</h3>
+            <div className="space-y-4 pb-6 border-b-2 border-gray-200">
+              <h3 className="text-lg font-bold text-black uppercase tracking-wider">Cantidad</h3>
               <div className="flex items-center gap-4">
-                <div className="flex items-center border-2 border-gray-300 rounded-xl overflow-hidden">
+                <div className="flex items-center border-2 border-black">
                   <button
-                    className="px-4 py-2 hover:bg-gray-100 transition-colors"
+                    className="px-6 py-3 font-bold hover:bg-gray-100 transition-colors"
                     onClick={() => quantity > 1 && setQuantity(quantity - 1)}
                   >
                     -
                   </button>
-                  <span className="px-4 py-2 min-w-[50px] text-center font-semibold">
+                  <span className="px-6 py-3 min-w-[60px] text-center font-bold border-x-2 border-black">
                     {quantity}
                   </span>
                   <button
-                    className="px-4 py-2 hover:bg-gray-100 transition-colors"
+                    className="px-6 py-3 font-bold hover:bg-gray-100 transition-colors"
                     onClick={() => setQuantity(quantity + 1)}
                   >
                     +
                   </button>
                 </div>
-                <span className="text-gray-500">unidades disponibles</span>
               </div>
             </div>
 
             {/* Beneficios */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl">
-                <FontAwesomeIcon icon={faShieldAlt} className="text-green-600 text-xl" />
-                <div>
-                  <p className="font-semibold text-green-700">Garantía</p>
-                  <p className="text-sm text-green-600">30 días</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl">
-                <FontAwesomeIcon icon={faTruck} className="text-blue-600 text-xl" />
-                <div>
-                  <p className="font-semibold text-blue-700">Envío</p>
-                  <p className="text-sm text-blue-600">Gratis Lima</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-xl">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-purple-600 text-xl" />
-                <div>
-                  <p className="font-semibold text-purple-700">Calidad</p>
-                  <p className="text-sm text-purple-600">Premium</p>
-                </div>
+            <div className="flex items-center gap-3 p-4 border-2 border-black">
+              <FontAwesomeIcon icon={faCheckCircle} className="text-black text-2xl" />
+              <div>
+                <p className="font-bold text-black">Calidad Premium</p>
+                <p className="text-sm text-gray-600">Materiales certificados de primera</p>
               </div>
             </div>
 
@@ -364,9 +408,9 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
                     quantity > 1 ? "es" : ""
                   }`
                 )}`}
-                className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl text-lg font-bold transition-all duration-300 ${
+                className={`w-full flex items-center justify-center gap-3 py-5 px-6 text-lg font-bold transition-all duration-300 ${
                   selectedColor && selectedSize
-                    ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transform hover:scale-105"
+                    ? "bg-black text-white hover:bg-gray-800"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
                 target="_blank"
@@ -376,12 +420,12 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
                 }}
               >
                 <FontAwesomeIcon icon={faWhatsapp} className="text-2xl" />
-                Contactar por WhatsApp
+                COMPRAR POR WHATSAPP
               </a>
 
               {(!selectedColor || !selectedSize) && (
-                <p className="text-center text-sm text-gray-500">
-                  Por favor selecciona color y talla para continuar
+                <p className="text-center text-sm text-gray-600 font-semibold">
+                  Selecciona color y talla para continuar
                 </p>
               )}
             </div>
@@ -396,7 +440,7 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
           >
             <div className="relative w-11/12 max-w-4xl">
               <button
-                className="absolute -top-12 right-0 text-white text-2xl font-bold bg-white/20 hover:bg-white/30 rounded-full w-12 h-12 flex items-center justify-center transition-all duration-300"
+                className="absolute -top-12 right-0 text-white text-2xl font-bold bg-white/20 hover:bg-white/30 w-12 h-12 flex items-center justify-center transition-all duration-300"
                 onClick={handleCloseModal}
               >
                 <FontAwesomeIcon icon={faTimes} />
@@ -404,15 +448,15 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
               <img
                 src={modalImage}
                 alt="Imagen ampliada"
-                className="w-full h-auto object-contain rounded-2xl"
+                className="w-full h-auto object-contain"
               />
             </div>
           </div>
         )}
 
         {/* Descripción detallada */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-16">
-          <h3 className="text-2xl font-bold text-yorusito-neutral mb-6">
+        <div className="bg-white border-2 border-black p-8 mb-16">
+          <h3 className="text-2xl font-black text-black mb-6 uppercase tracking-wider">
             Descripción del Producto
           </h3>
           <div className="prose prose-lg max-w-none">
@@ -425,7 +469,7 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
         {/* Productos relacionados */}
         {filteredProducts.length > 0 && (
           <div className="space-y-8">
-            <h3 className="text-3xl font-bold text-yorusito-neutral text-center">
+            <h3 className="text-3xl font-black text-black text-center uppercase tracking-wider">
               También te puede interesar
             </h3>
 
@@ -448,7 +492,7 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
               {filteredProducts.map((relatedProduct) => (
                 <SwiperSlide key={relatedProduct.id}>
                   <div
-                    className="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                    className="bg-white border-2 border-black overflow-hidden cursor-pointer transition-all duration-300 hover:border-gray-600 group"
                     onClick={() => router.push(`/products/${relatedProduct.id}`)}
                   >
                     <div className="relative overflow-hidden">
@@ -457,13 +501,12 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
                         alt={relatedProduct.name}
                         className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
                     <div className="p-4 space-y-2">
-                      <h4 className="font-bold text-yorusito-neutral line-clamp-2">
+                      <h4 className="font-bold text-black line-clamp-2">
                         {relatedProduct.name}
                       </h4>
-                      <p className="text-yorusito-accent font-bold text-lg">
+                      <p className="text-black font-black text-lg">
                         S/ {relatedProduct.price.toFixed(2)}
                       </p>
                     </div>
