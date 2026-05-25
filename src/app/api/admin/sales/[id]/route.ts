@@ -1,0 +1,39 @@
+import { NextResponse } from "next/server";
+import { deleteSale, updateSale } from "@/backend/admin-data.server";
+import { getSessionUserFromRequest, readJsonBody } from "@/backend/admin-api.server";
+import type { AdminSale } from "@/lib/admin-data";
+
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  const user = getSessionUserFromRequest(request);
+
+  if (!user) {
+    return NextResponse.json({ error: "No active session." }, { status: 401 });
+  }
+
+  const { id } = await context.params;
+  const body = await readJsonBody<Partial<Omit<AdminSale, "id">>>(request);
+  const sale = updateSale(id, body);
+
+  if (!sale) {
+    return NextResponse.json({ error: "Sale not found." }, { status: 404 });
+  }
+
+  return NextResponse.json({ sale });
+}
+
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  const user = getSessionUserFromRequest(request);
+
+  if (!user) {
+    return NextResponse.json({ error: "No active session." }, { status: 401 });
+  }
+
+  const { id } = await context.params;
+  const deleted = deleteSale(id);
+
+  if (!deleted) {
+    return NextResponse.json({ error: "Sale not found." }, { status: 404 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

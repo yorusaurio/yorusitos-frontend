@@ -3,13 +3,13 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AUTH_COOKIE_NAME, parseSessionUser } from "@/backend/auth.server";
 
-export default async function AccountLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
   const cookieValue = cookieStore.get(AUTH_COOKIE_NAME)?.value;
   const user = parseSessionUser(cookieValue ? decodeURIComponent(cookieValue) : null);
 
   if (!user) {
-    redirect("/login?next=/account");
+    redirect("/login?next=/admin");
   }
 
   return children;

@@ -30,6 +30,13 @@ body {
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+select,
+option {
+  background-color: #ffffff;
+  color: #111827;
 }
 
 /* Utilidades personalizadas */

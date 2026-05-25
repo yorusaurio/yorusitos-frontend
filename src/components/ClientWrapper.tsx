@@ -8,7 +8,10 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 
 const ClientWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
-  const isStandaloneRoute = pathname === "/login" || pathname === "/register";
+  const isStandaloneRoute =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname.startsWith("/admin");
 
   return (
     <AuthProvider>

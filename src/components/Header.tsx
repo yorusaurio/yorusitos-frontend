@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faTimes, faShoppingBag, faUser, faSearch, faChevronDown, faGear, faBoxOpen, faHeart, faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faTimes, faShoppingBag, faUser, faSearch, faChevronDown, faGear, faBoxOpen, faHeart, faRightFromBracket, faChartLine } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 interface HeaderProps {
@@ -116,6 +116,7 @@ const Header: React.FC<HeaderProps> = ({ variant = "solid" }) => {
                 {isAccountMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-zinc-800 bg-zinc-900 p-2 shadow-2xl z-[60]">
                     <AccountLink href="/account" onClick={() => setIsAccountMenuOpen(false)} icon={faUser} label="Mi cuenta" />
+                    <AccountLink href="/admin" onClick={() => setIsAccountMenuOpen(false)} icon={faChartLine} label="Admin" />
                     <AccountLink href="/account/settings" onClick={() => setIsAccountMenuOpen(false)} icon={faGear} label="Configuración" />
                     <AccountLink href="/account/orders" onClick={() => setIsAccountMenuOpen(false)} icon={faBoxOpen} label="Mis órdenes" />
                     <AccountLink href="/account/wishlist" onClick={() => setIsAccountMenuOpen(false)} icon={faHeart} label="Wishlist" />

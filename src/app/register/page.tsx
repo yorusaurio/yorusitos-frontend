@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 
-export default function RegisterPage() {
+function RegisterForm() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const redirectTarget = searchParams.get("next") || "/home";
@@ -144,5 +144,13 @@ export default function RegisterPage() {
 				</p>
 			</section>
 		</div>
+	);
+}
+
+export default function RegisterPage() {
+	return (
+		<Suspense fallback={<div className="min-h-screen bg-[#f5efe6]" />}>
+			<RegisterForm />
+		</Suspense>
 	);
 }

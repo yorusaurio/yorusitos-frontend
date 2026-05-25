@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -8,7 +8,7 @@ import { faEye } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/components/auth/AuthProvider";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 
-export default function LoginPage() {
+function LoginForm() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const redirectTarget = searchParams.get("next") || "/home";
@@ -141,5 +141,13 @@ export default function LoginPage() {
 				</p>
 			</section>
 		</div>
+	);
+}
+
+export default function LoginPage() {
+	return (
+		<Suspense fallback={<div className="min-h-screen bg-[#f5efe6]" />}>
+			<LoginForm />
+		</Suspense>
 	);
 }

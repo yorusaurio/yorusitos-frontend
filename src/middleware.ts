@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
   const cookieValue = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   const user = parseSessionUser(cookieValue ? decodeURIComponent(cookieValue) : null);
 
-  if (pathname.startsWith("/account") && !user) {
+  if ((pathname.startsWith("/account") || pathname.startsWith("/admin")) && !user) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
@@ -21,5 +21,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/register", "/account/:path*"],
+  matcher: ["/login", "/register", "/account/:path*", "/admin/:path*"],
 };

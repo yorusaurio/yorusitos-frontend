@@ -1,0 +1,39 @@
+import { NextResponse } from "next/server";
+import { deleteInventoryItem, updateInventoryItem } from "@/backend/admin-data.server";
+import { getSessionUserFromRequest, readJsonBody } from "@/backend/admin-api.server";
+import type { AdminInventoryItem } from "@/lib/admin-data";
+
+export async function PATCH(request: Request, context: { params: Promise<{ sku: string }> }) {
+  const user = getSessionUserFromRequest(request);
+
+  if (!user) {
+    return NextResponse.json({ error: "No active session." }, { status: 401 });
+  }
+
+  const { sku } = await context.params;
+  const body = await readJsonBody<Partial<Omit<AdminInventoryItem, "sku">>>(request);
+  const item = updateInventoryItem(sku, body);
+
+  if (!item) {
+    return NextResponse.json({ error: "Inventory item not found." }, { status: 404 });
+  }
+
+  return NextResponse.json({ item });
+}
+
+export async function DELETE(request: Request, context: { params: Promise<{ sku: string }> }) {
+  const user = getSessionUserFromRequest(request);
+
+  if (!user) {
+    return NextResponse.json({ error: "No active session." }, { status: 401 });
+  }
+
+  const { sku } = await context.params;
+  const deleted = deleteInventoryItem(sku);
+
+  if (!deleted) {
+    return NextResponse.json({ error: "Inventory item not found." }, { status: 404 });
+  }
+
+  return NextResponse.json({ ok: true });
+}
