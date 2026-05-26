@@ -39,9 +39,23 @@ export interface AdminInventoryItem {
 
 export interface AdminContact {
   id: string;
-  name: string;
-  channel: "WhatsApp" | "Email" | "Formulario";
-  issue: string;
-  priority: "Alta" | "Media" | "Baja";
-  status: "Abierto" | "En proceso" | "Cerrado";
+  documentType: "DNI" | "CE" | "PASAPORTE" | "RUC" | "OTRO";
+  document: string;
+  lastNamePaterno: string;
+  lastNameMaterno: string;
+  names: string;
+  sex: "MASCULINO" | "FEMENINO" | "OTRO";
+  birthDate: string;
+  numero: string;
+  client: string;
+  cellphone: string;
+  email: string;
+  province: string;
+  district: string;
+  department: string;
+  address: string;
+  addressNumber: string;
+  reference: string;
+  agency: string;
+  contactedBy: string;
 }

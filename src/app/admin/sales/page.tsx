@@ -640,15 +640,6 @@ export default function AdminSalesPage() {
               >
                 <FontAwesomeIcon icon={faPlus} className="h-4 w-4" />
               </button>
-              {/* Debug helper: abrir modal manualmente */}
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(true)}
-                className="ml-2 rounded-md bg-zinc-100 px-3 py-1 text-xs text-zinc-700"
-                title="Abrir modal (debug)"
-              >
-                Abrir modal
-              </button>
               <button
                 type="button"
                 onClick={handleEditSelected}

@@ -22,16 +22,50 @@ export async function POST(request: Request) {
 
   const body = await readJsonBody<Omit<AdminContact, "id">>(request);
 
-  if (!body.name || !body.channel || !body.issue || !body.priority || !body.status) {
+  if (
+    !body.documentType ||
+    !body.document ||
+    !body.lastNamePaterno ||
+    !body.lastNameMaterno ||
+    !body.names ||
+    !body.sex ||
+    !body.birthDate ||
+    !body.numero ||
+    !body.client ||
+    !body.cellphone ||
+    !body.email ||
+    !body.province ||
+    !body.district ||
+    !body.department ||
+    !body.address ||
+    !body.addressNumber ||
+    !body.reference ||
+    !body.agency ||
+    !body.contactedBy
+  ) {
     return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
   }
 
   const contact = createContact({
-    name: body.name,
-    channel: body.channel,
-    issue: body.issue,
-    priority: body.priority,
-    status: body.status,
+    documentType: body.documentType,
+    document: body.document,
+    lastNamePaterno: body.lastNamePaterno,
+    lastNameMaterno: body.lastNameMaterno,
+    names: body.names,
+    sex: body.sex,
+    birthDate: body.birthDate,
+    numero: body.numero,
+    client: body.client,
+    cellphone: body.cellphone,
+    email: body.email,
+    province: body.province,
+    district: body.district,
+    department: body.department,
+    address: body.address,
+    addressNumber: body.addressNumber,
+    reference: body.reference,
+    agency: body.agency,
+    contactedBy: body.contactedBy,
   });
 
   return NextResponse.json({ contact }, { status: 201 });
