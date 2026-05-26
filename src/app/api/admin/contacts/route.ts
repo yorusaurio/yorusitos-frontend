@@ -41,7 +41,10 @@ export async function POST(request: Request) {
     !body.addressNumber ||
     !body.reference ||
     !body.agency ||
-    !body.contactedBy
+    !body.contactedBy ||
+    !Array.isArray(body.contactedBy) ||
+    (body.contactedBy.includes("OTROS") && !body.contactedByOther) ||
+    !body.classification
   ) {
     return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
   }
@@ -55,6 +58,7 @@ export async function POST(request: Request) {
     sex: body.sex,
     birthDate: body.birthDate,
     numero: body.numero,
+    classification: body.classification,
     client: body.client,
     cellphone: body.cellphone,
     email: body.email,
@@ -66,6 +70,7 @@ export async function POST(request: Request) {
     reference: body.reference,
     agency: body.agency,
     contactedBy: body.contactedBy,
+    contactedByOther: body.contactedByOther || undefined,
   });
 
   return NextResponse.json({ contact }, { status: 201 });

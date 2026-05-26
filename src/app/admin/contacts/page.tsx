@@ -4,10 +4,24 @@ import { FormEvent, MouseEvent as ReactMouseEvent, useEffect, useState } from "r
 import AdminShell from "@/components/admin/AdminShell";
 import CrudModal from "@/components/admin/CrudModal";
 import type { AdminContact } from "@/lib/admin-data";
+import {
+  departmentOptions,
+  findDepartmentOptionByName,
+  findDistrictOptionByName,
+  findProvinceOptionByName,
+  getDistrictOptions,
+  getProvinceOptions,
+} from "@/lib/peru-ubigeo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen, faPlus, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 type ContactForm = Omit<AdminContact, "id" | "client">;
+
+type UbigeoSelection = {
+  departmentCode: string;
+  provinceCode: string;
+  districtCode: string;
+};
 
 function buildClientName(form: ContactForm) {
   return [form.lastNamePaterno, form.lastNameMaterno, form.names]
@@ -26,6 +40,7 @@ const initialForm: ContactForm = {
   names: "",
   sex: "MASCULINO",
   birthDate: "",
+  classification: "MINORISTA",
   numero: "",
   cellphone: "",
   email: "",
@@ -36,12 +51,20 @@ const initialForm: ContactForm = {
   addressNumber: "",
   reference: "",
   agency: "",
-  contactedBy: "",
+  contactedBy: [],
+  contactedByOther: "",
+};
+
+const initialUbigeoSelection: UbigeoSelection = {
+  departmentCode: "",
+  provinceCode: "",
+  districtCode: "",
 };
 
 export default function AdminContactsPage() {
   const [tickets, setTickets] = useState<AdminContact[]>([]);
   const [form, setForm] = useState<ContactForm>(initialForm);
+  const [ubigeoSelection, setUbigeoSelection] = useState<UbigeoSelection>(initialUbigeoSelection);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedTicketIds, setSelectedTicketIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
@@ -132,14 +155,31 @@ export default function AdminContactsPage() {
     setEditingId(contact.id);
     const { id: _id, client: _client, ...contactForm } = contact;
     setForm(contactForm);
+    const departmentOption = findDepartmentOptionByName(contact.department);
+    const provinceOption = departmentOption ? findProvinceOptionByName(departmentOption.code, contact.province) : undefined;
+    const districtOption = departmentOption && provinceOption
+      ? findDistrictOptionByName(departmentOption.code, provinceOption.code, contact.district)
+      : undefined;
+
+    setUbigeoSelection({
+      departmentCode: departmentOption?.code || "",
+      provinceCode: provinceOption?.code || "",
+      districtCode: districtOption?.code || "",
+    });
     setIsModalOpen(true);
   }
 
   function handleCreate() {
     setEditingId(null);
     setForm(initialForm);
+    setUbigeoSelection(initialUbigeoSelection);
     setIsModalOpen(true);
   }
+
+  const provinceOptions = ubigeoSelection.departmentCode ? getProvinceOptions(ubigeoSelection.departmentCode) : [];
+  const districtOptions = ubigeoSelection.departmentCode && ubigeoSelection.provinceCode
+    ? getDistrictOptions(ubigeoSelection.departmentCode, ubigeoSelection.provinceCode)
+    : [];
 
   function handleEditSelected() {
     if (selectedTicketIds.length !== 1) return;
@@ -185,6 +225,7 @@ export default function AdminContactsPage() {
     if (saving) return;
     setEditingId(null);
     setForm(initialForm);
+    setUbigeoSelection(initialUbigeoSelection);
     setIsModalOpen(false);
   }
 
@@ -301,7 +342,7 @@ export default function AdminContactsPage() {
                 DIRECCIÓN: {ticket.address} {ticket.addressNumber} · REFERENCIA: {ticket.reference}
               </p>
               <p className="mt-1 text-xs uppercase tracking-wide text-zinc-500">
-                AGENCIA: {ticket.agency} · CONTACTADO POR: {ticket.contactedBy}
+                AGENCIA: {ticket.agency} · CONTACTADO POR: {Array.isArray(ticket.contactedBy) ? ticket.contactedBy.join(', ') : ticket.contactedBy}{ticket.contactedByOther ? ` (${ticket.contactedByOther})` : ''}
               </p>
             </li>
           ))}
@@ -318,7 +359,8 @@ export default function AdminContactsPage() {
         <div className="space-y-5">
           <section className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">Identificación</h4>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+
+            <div className="grid gap-3 sm:grid-cols-4 xl:grid-cols-5">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">TIPO DE DOCUMENTO</label>
                 <select
@@ -345,36 +387,12 @@ export default function AdminContactsPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">APELLIDO PATERNO</label>
+                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">NACIMIENTO</label>
                 <input
-                  type="text"
-                  value={form.lastNamePaterno}
-                  onChange={(event) => setForm((previous) => ({ ...previous, lastNamePaterno: event.target.value }))}
-                  placeholder="APELLIDO PATERNO"
-                  required
-                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">APELLIDO MATERNO</label>
-                <input
-                  type="text"
-                  value={form.lastNameMaterno}
-                  onChange={(event) => setForm((previous) => ({ ...previous, lastNameMaterno: event.target.value }))}
-                  placeholder="APELLIDO MATERNO"
-                  required
-                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
-                />
-              </div>
-              <div className="space-y-1.5 xl:col-span-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">NOMBRES</label>
-                <input
-                  type="text"
-                  value={form.names}
-                  onChange={(event) => setForm((previous) => ({ ...previous, names: event.target.value }))}
-                  placeholder="NOMBRES"
-                  required
-                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
+                  type="date"
+                  value={form.birthDate}
+                  onChange={(event) => setForm((previous) => ({ ...previous, birthDate: event.target.value }))}
+                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
                 />
               </div>
               <div className="space-y-1.5">
@@ -390,31 +408,88 @@ export default function AdminContactsPage() {
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">NACIMIENTO</label>
-                <input
-                  type="date"
-                  value={form.birthDate}
-                  onChange={(event) => setForm((previous) => ({ ...previous, birthDate: event.target.value }))}
-                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm"
-                />
+                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">CLASIFICACIÓN</label>
+                <select
+                  value={form.classification}
+                  onChange={(event) => setForm((previous) => ({ ...previous, classification: event.target.value as ContactForm["classification"] }))}
+                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
+                >
+                  <option value="MINORISTA">MINORISTA</option>
+                  <option value="MAYORISTA">MAYORISTA</option>
+                </select>
               </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-4 mt-2">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">NÚMERO</label>
+                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">APELLIDO PATERNO</label>
                 <input
                   type="text"
-                  value={form.numero}
-                  onChange={(event) => setForm((previous) => ({ ...previous, numero: event.target.value }))}
-                  placeholder="NÚMERO"
+                  value={form.lastNamePaterno}
+                  onChange={(event) => setForm((previous) => ({ ...previous, lastNamePaterno: event.target.value }))}
+                  placeholder="APELLIDO PATERNO"
+                  required
                   className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
                 />
               </div>
-              <div className="space-y-1.5 sm:col-span-2 xl:col-span-3">
-                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">CLIENTE</label>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">APELLIDO MATERNO</label>
                 <input
                   type="text"
-                  value={buildClientName(form)}
-                  readOnly
-                  className="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm font-semibold uppercase text-zinc-700"
+                  value={form.lastNameMaterno}
+                  onChange={(event) => setForm((previous) => ({ ...previous, lastNameMaterno: event.target.value }))}
+                  placeholder="APELLIDO MATERNO"
+                  required
+                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">NOMBRES</label>
+                <input
+                  type="text"
+                  value={form.names}
+                  onChange={(event) => setForm((previous) => ({ ...previous, names: event.target.value }))}
+                  placeholder="NOMBRES"
+                  required
+                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
+                />
+              </div>
+            </div>
+
+            <div className="mt-2">
+              <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">CLIENTE</label>
+              <input
+                type="text"
+                value={buildClientName(form)}
+                readOnly
+                className="w-full mt-1 rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm font-semibold uppercase text-zinc-700"
+              />
+            </div>
+
+            <div className="mt-2 grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">CELULAR</label>
+                <input
+                  type="text"
+                  value={form.cellphone}
+                  onChange={(event) => setForm((previous) => ({ ...previous, cellphone: event.target.value }))}
+                  placeholder="CELULAR"
+                  required
+                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">EMAIL</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(event) => setForm((previous) => ({ ...previous, email: event.target.value }))}
+                  placeholder="EMAIL"
+                  required
+                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
                 />
               </div>
             </div>
@@ -424,37 +499,101 @@ export default function AdminContactsPage() {
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">Ubicación</h4>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">PROVINCIA</label>
-                <input
-                  type="text"
-                  value={form.province}
-                  onChange={(event) => setForm((previous) => ({ ...previous, province: event.target.value }))}
-                  placeholder="PROVINCIA"
+                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">DEPARTAMENTO</label>
+                <select
+                  value={ubigeoSelection.departmentCode}
+                  onChange={(event) =>
+                    setForm((previous) => {
+                      const selectedDepartment = departmentOptions.find((option) => option.code === event.target.value);
+
+                      setUbigeoSelection({
+                        departmentCode: event.target.value,
+                        provinceCode: "",
+                        districtCode: "",
+                      });
+
+                      return {
+                        ...previous,
+                        department: selectedDepartment?.name || "",
+                        province: "",
+                        district: "",
+                      };
+                    })
+                  }
                   required
                   className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
-                />
+                >
+                  <option value="">Selecciona departamento</option>
+                  {departmentOptions.map((option) => (
+                    <option key={option.code} value={option.code}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">PROVINCIA</label>
+                <select
+                  value={ubigeoSelection.provinceCode}
+                  onChange={(event) =>
+                    setForm((previous) => {
+                      const selectedProvince = provinceOptions.find((option) => option.code === event.target.value);
+
+                      setUbigeoSelection((previousSelection) => ({
+                        ...previousSelection,
+                        provinceCode: event.target.value,
+                        districtCode: "",
+                      }));
+
+                      return {
+                        ...previous,
+                        province: selectedProvince?.name || "",
+                        district: "",
+                      };
+                    })
+                  }
+                  disabled={!ubigeoSelection.departmentCode}
+                  required
+                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase disabled:cursor-not-allowed disabled:bg-zinc-100"
+                >
+                  <option value="">{ubigeoSelection.departmentCode ? "Selecciona provincia" : "Primero selecciona departamento"}</option>
+                  {provinceOptions.map((option) => (
+                    <option key={option.code} value={option.code}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">DISTRITO</label>
-                <input
-                  type="text"
-                  value={form.district}
-                  onChange={(event) => setForm((previous) => ({ ...previous, district: event.target.value }))}
-                  placeholder="DISTRITO"
+                <select
+                  value={ubigeoSelection.districtCode}
+                  onChange={(event) =>
+                    setForm((previous) => {
+                      const selectedDistrict = districtOptions.find((option) => option.code === event.target.value);
+
+                      setUbigeoSelection((previousSelection) => ({
+                        ...previousSelection,
+                        districtCode: event.target.value,
+                      }));
+
+                      return {
+                        ...previous,
+                        district: selectedDistrict?.name || "",
+                      };
+                    })
+                  }
+                  disabled={!ubigeoSelection.provinceCode}
                   required
-                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">DEPARTAMENTO</label>
-                <input
-                  type="text"
-                  value={form.department}
-                  onChange={(event) => setForm((previous) => ({ ...previous, department: event.target.value }))}
-                  placeholder="DEPARTAMENTO"
-                  required
-                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
-                />
+                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase disabled:cursor-not-allowed disabled:bg-zinc-100"
+                >
+                  <option value="">{ubigeoSelection.provinceCode ? "Selecciona distrito" : "Primero selecciona provincia"}</option>
+                  {districtOptions.map((option) => (
+                    <option key={option.code} value={option.code}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-1.5 sm:col-span-2 xl:col-span-2">
                 <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">DIRECCIÓN</label>
@@ -498,44 +637,51 @@ export default function AdminContactsPage() {
                   className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">CONTACTADO POR</label>
-                <input
-                  type="text"
-                  value={form.contactedBy}
-                  onChange={(event) => setForm((previous) => ({ ...previous, contactedBy: event.target.value }))}
-                  placeholder="CONTACTADO POR"
-                  required
-                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
-                />
-              </div>
             </div>
           </section>
 
           <section className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">Contacto</h4>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-1">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">CELULAR</label>
-                <input
-                  type="text"
-                  value={form.cellphone}
-                  onChange={(event) => setForm((previous) => ({ ...previous, cellphone: event.target.value }))}
-                  placeholder="CELULAR"
-                  required
-                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">EMAIL</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(event) => setForm((previous) => ({ ...previous, email: event.target.value }))}
-                  placeholder="EMAIL"
-                  required
-                  className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
-                />
+                <label className="text-xs font-semibold uppercase tracking-wide text-zinc-600">CONTACTADO POR</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    "FACEBOOK",
+                    "INSTAGRAM",
+                    "WEB",
+                    "CORREO",
+                    "RECOMENDADO",
+                    "OTROS",
+                  ].map((option) => (
+                    <label key={option} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={form.contactedBy.includes(option)}
+                        onChange={(event) => {
+                          const checked = event.target.checked;
+                          setForm((previous) => {
+                            const set = new Set(previous.contactedBy || []);
+                            if (checked) set.add(option);
+                            else set.delete(option);
+                            return { ...previous, contactedBy: Array.from(set) } as ContactForm;
+                          });
+                        }}
+                        className="h-4 w-4"
+                      />
+                      <span className="uppercase">{option}</span>
+                    </label>
+                  ))}
+                </div>
+                {form.contactedBy.includes("OTROS") ? (
+                  <input
+                    type="text"
+                    value={form.contactedByOther}
+                    onChange={(event) => setForm((previous) => ({ ...previous, contactedByOther: event.target.value }))}
+                    placeholder="OTROS (especificar)"
+                    className="mt-2 w-full rounded-xl border border-zinc-300 px-3 py-2 text-sm uppercase"
+                  />
+                ) : null}
               </div>
             </div>
           </section>

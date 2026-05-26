@@ -47,6 +47,7 @@ export interface AdminContact {
   sex: "MASCULINO" | "FEMENINO" | "OTRO";
   birthDate: string;
   numero: string;
+  classification: "MINORISTA" | "MAYORISTA";
   client: string;
   cellphone: string;
   email: string;
@@ -57,5 +58,6 @@ export interface AdminContact {
   addressNumber: string;
   reference: string;
   agency: string;
-  contactedBy: string;
+  contactedBy: string[];
+  contactedByOther?: string;
 }

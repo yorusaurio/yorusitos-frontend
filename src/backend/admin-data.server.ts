@@ -32,6 +32,7 @@ let contacts: AdminContact[] = [
     sex: "FEMENINO",
     birthDate: "1994-05-12",
     numero: "01",
+    classification: "MINORISTA",
     client: "GARCIA MORA ANA MARIA",
     cellphone: "987654321",
     email: "ANA.MARIA@GMAIL.COM",
@@ -42,7 +43,7 @@ let contacts: AdminContact[] = [
     addressNumber: "123",
     reference: "CERCA AL PARQUE",
     agency: "MIRAFLORES",
-    contactedBy: "WHATSAPP",
+    contactedBy: ["WHATSAPP"],
   },
   {
     id: "SUP-200",
@@ -54,6 +55,7 @@ let contacts: AdminContact[] = [
     sex: "MASCULINO",
     birthDate: "1990-09-03",
     numero: "02",
+    classification: "MINORISTA",
     client: "PEREZ GONZALES PEDRO JOSE",
     cellphone: "999888777",
     email: "PEDRO.PEREZ@GMAIL.COM",
@@ -64,7 +66,7 @@ let contacts: AdminContact[] = [
     addressNumber: "456",
     reference: "FRENTE AL COLEGIO",
     agency: "SURCO",
-    contactedBy: "EMAIL",
+    contactedBy: ["EMAIL"],
   },
   {
     id: "SUP-199",
@@ -76,6 +78,7 @@ let contacts: AdminContact[] = [
     sex: "OTRO",
     birthDate: "1988-01-20",
     numero: "03",
+    classification: "MAYORISTA",
     client: "TIENDA MIRAFLORES RAZON SOCIAL",
     cellphone: "998776655",
     email: "VENTAS@TIENDAMIRAFLORES.COM",
@@ -86,7 +89,7 @@ let contacts: AdminContact[] = [
     addressNumber: "789",
     reference: "LOCAL EN ESQUINA",
     agency: "MIRAFLORES",
-    contactedBy: "FORMULARIO",
+    contactedBy: ["FORMULARIO"],
   },
 ];
 
