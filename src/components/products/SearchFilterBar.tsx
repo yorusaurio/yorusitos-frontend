@@ -26,17 +26,6 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
   return (
     <section className="py-12 bg-gradient-to-br from-gray-50 to-white border-b border-gray-100 sticky top-20 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Título principal */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-black mb-3">
-            Encuentra tu Estilo
-          </h1>
-          <p className="text-lg text-gray-600">
-            Explora nuestra colección de prendas únicas y personalizadas
-          </p>
-        </div>
-
-        {/* Barra de búsqueda y filtros */}
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between max-w-5xl mx-auto">
           <div className="relative flex-1 w-full">
             <FontAwesomeIcon icon={faSearch} className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg" />
@@ -66,9 +55,9 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
                 className="w-full lg:w-auto pl-11 pr-10 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-black transition-all appearance-none bg-white text-gray-700 font-medium shadow-sm cursor-pointer hover:border-gray-300"
               >
                 <option value="all">Todas</option>
-                <option value="polo">Polos</option>
-                <option value="hoodie">Hoodies</option>
-                <option value="pants">Pantalones</option>
+                <option value="SuperStars">SuperStars</option>
+                <option value="Romantic">Romantic</option>
+                <option value="GYM">GYM</option>
               </select>
             </div>
             
