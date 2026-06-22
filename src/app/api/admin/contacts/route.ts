@@ -10,7 +10,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "No active session." }, { status: 401 });
   }
 
-  return NextResponse.json({ contacts: listContacts() });
+  const contacts = await listContacts();
+  return NextResponse.json({ contacts });
 }
 
 export async function POST(request: Request) {
@@ -21,7 +22,6 @@ export async function POST(request: Request) {
   }
 
   const body = await readJsonBody<Omit<AdminContact, "id">>(request);
-
   if (
     !body.documentType ||
     !body.document ||
@@ -46,10 +46,38 @@ export async function POST(request: Request) {
     (body.contactedBy.includes("OTROS") && !body.contactedByOther) ||
     !body.classification
   ) {
-    return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
+    const required = [
+      "documentType",
+      "document",
+      "lastNamePaterno",
+      "lastNameMaterno",
+      "names",
+      "sex",
+      "birthDate",
+      "numero",
+      "client",
+      "cellphone",
+      "email",
+      "province",
+      "district",
+      "department",
+      "address",
+      "addressNumber",
+      "reference",
+      "agency",
+      "contactedBy",
+      "classification",
+    ];
+
+    const missing = required.filter((key) => {
+      // @ts-ignore
+      return !body[key] && body[key] !== 0;
+    });
+
+    return NextResponse.json({ error: "Invalid payload.", missing }, { status: 400 });
   }
 
-  const contact = createContact({
+  const contact = await createContact({
     documentType: body.documentType,
     document: body.document,
     lastNamePaterno: body.lastNamePaterno,

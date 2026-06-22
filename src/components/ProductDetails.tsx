@@ -17,6 +17,8 @@ import {
   faCheckCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
+import { findVariantStock } from "@/lib/product-stock";
+import { useProductStock } from "@/hooks/useProductStock";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -32,6 +34,12 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [quantity, setQuantity] = useState<number>(1);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
+  const { stock, loading: stockLoading } = useProductStock();
+  const productStock = product ? stock[product.id] : undefined;
+  const selectedVariantStock = findVariantStock(productStock, selectedColor, selectedSize);
+  const availableUnits = selectedVariantStock?.available ?? productStock?.available ?? 0;
+  const stockKnown = Boolean(productStock);
+  const canBuy = Boolean(selectedColor && selectedSize && !stockLoading && stockKnown && availableUnits > 0);
 
   const filteredProducts = product
     ? mockProducts.filter(
@@ -101,6 +109,25 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
       alert("¡Enlace copiado al portapapeles!");
     }
   };
+
+  const goToCheckout = () => {
+    if (!canBuy) return;
+
+    const checkoutParams = new URLSearchParams({
+      productId: String(product.id),
+      color: selectedColor || "",
+      size: selectedSize || "",
+      quantity: String(quantity),
+    });
+
+    router.push(`/checkout?${checkoutParams.toString()}`);
+  };
+
+  useEffect(() => {
+    if (stockKnown && availableUnits > 0 && quantity > availableUnits) {
+      setQuantity(availableUnits);
+    }
+  }, [availableUnits, quantity, stockKnown]);
 
   if (!product) {
     return (
@@ -184,7 +211,7 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
 
               {/* Indicador de nuevo */}
               <div className="absolute top-4 left-4 bg-black text-white px-4 py-2 text-sm font-bold">
-                NUEVO
+                {stockLoading ? "VALIDANDO STOCK" : stockKnown && availableUnits <= 0 ? "SIN STOCK" : "NUEVO"}
               </div>
             </div>
 
@@ -233,6 +260,13 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
                 <span className="text-4xl font-black text-black">
                   S/ {product.price.toFixed(2)}
                 </span>
+                {stockKnown ? (
+                  <span className={`rounded-full px-3 py-1 text-xs font-black uppercase tracking-wide ${availableUnits > 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                    {availableUnits > 0 ? `${availableUnits} disponibles` : "Sin stock"}
+                  </span>
+                ) : stockLoading ? (
+                  <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-black uppercase tracking-wide text-zinc-600">Validando stock</span>
+                ) : null}
               </div>
             </div>
 
@@ -354,7 +388,8 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
                 {product.sizes.map((size: string) => (
                   <button
                     key={size}
-                    className={`py-3 px-4 border-2 font-bold transition-all duration-300 ${
+                    disabled={stockKnown && (findVariantStock(productStock, selectedColor, size)?.available ?? 0) <= 0}
+                    className={`py-3 px-4 border-2 font-bold transition-all duration-300 disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-400 ${
                       selectedSize === size
                         ? "bg-black text-white border-black"
                         : "bg-white text-black border-black hover:bg-gray-100"
@@ -373,7 +408,8 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
               <div className="flex items-center gap-4">
                 <div className="flex items-center border-2 border-black">
                   <button
-                    className="px-6 py-3 font-bold hover:bg-gray-100 transition-colors"
+                    className="px-6 py-3 font-bold hover:bg-gray-100 transition-colors disabled:cursor-not-allowed disabled:text-gray-300"
+                    disabled={quantity <= 1}
                     onClick={() => quantity > 1 && setQuantity(quantity - 1)}
                   >
                     -
@@ -382,8 +418,9 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
                     {quantity}
                   </span>
                   <button
-                    className="px-6 py-3 font-bold hover:bg-gray-100 transition-colors"
-                    onClick={() => setQuantity(quantity + 1)}
+                    className="px-6 py-3 font-bold hover:bg-gray-100 transition-colors disabled:cursor-not-allowed disabled:text-gray-300"
+                    disabled={stockKnown && quantity >= availableUnits}
+                    onClick={() => setQuantity((current) => (stockKnown ? Math.min(availableUnits, current + 1) : current + 1))}
                   >
                     +
                   </button>
@@ -402,6 +439,19 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
 
             {/* Botón de WhatsApp */}
             <div className="space-y-4">
+              <button
+                type="button"
+                onClick={goToCheckout}
+                disabled={!canBuy}
+                className={`w-full py-5 px-6 text-lg font-bold transition-all duration-300 ${
+                  canBuy
+                    ? "bg-zinc-950 text-white hover:bg-zinc-800"
+                    : "cursor-not-allowed bg-gray-300 text-gray-500"
+                }`}
+              >
+                {stockLoading ? "VALIDANDO STOCK..." : stockKnown && availableUnits <= 0 ? "SIN STOCK" : "CONTINUAR AL CHECKOUT"}
+              </button>
+
               <a
                 href={`https://wa.me/51975885868?text=${encodeURIComponent(
                   `¡Hola! Estoy interesado en el producto: ${product.name}\nColor: ${selectedColor || "No seleccionado"}\nTalla: ${selectedSize || "No seleccionada"}\nCantidad: ${quantity} unidad${
@@ -409,21 +459,25 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
                   }`
                 )}`}
                 className={`w-full flex items-center justify-center gap-3 py-5 px-6 text-lg font-bold transition-all duration-300 ${
-                  selectedColor && selectedSize
+                  canBuy
                     ? "bg-black text-white hover:bg-gray-800"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
-                  pointerEvents: selectedColor && selectedSize ? "auto" : "none",
+                  pointerEvents: canBuy ? "auto" : "none",
                 }}
               >
                 <FontAwesomeIcon icon={faWhatsapp} className="text-2xl" />
                 COMPRAR POR WHATSAPP
               </a>
 
-              {(!selectedColor || !selectedSize) && (
+              {stockKnown && availableUnits <= 0 ? (
+                <p className="text-center text-sm font-semibold text-red-600">
+                  Esta variante esta sin stock. Prueba otro color o talla.
+                </p>
+              ) : (!selectedColor || !selectedSize) && (
                 <p className="text-center text-sm text-gray-600 font-semibold">
                   Selecciona color y talla para continuar
                 </p>

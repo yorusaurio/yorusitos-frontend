@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME, parseSessionUser } from "@/backend/auth.server";
-import { getDemoOrders } from "@/backend/account-data.server";
+import { listAccountOrders } from "@/backend/account-data.server";
 
 function getCookieValue(request: Request) {
   return request.headers
@@ -18,5 +18,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "No active session." }, { status: 401 });
   }
 
-  return NextResponse.json({ orders: getDemoOrders() });
+  const orders = await listAccountOrders(user.id);
+  return NextResponse.json({ orders });
 }

@@ -13,6 +13,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  if (pathname.startsWith("/admin") && user && !user.roles?.some((role) => role === "vendedor" || role === "admin")) {
+    return NextResponse.redirect(new URL("/account", request.url));
+  }
+
   if ((pathname === "/login" || pathname === "/register") && user) {
     return NextResponse.redirect(new URL("/home", request.url));
   }

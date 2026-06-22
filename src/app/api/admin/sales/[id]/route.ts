@@ -12,7 +12,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
   const { id } = await context.params;
   const body = await readJsonBody<Partial<Omit<AdminSale, "id">>>(request);
-  const sale = updateSale(id, body);
+  const sale = await updateSale(id, body);
 
   if (!sale) {
     return NextResponse.json({ error: "Sale not found." }, { status: 404 });
@@ -29,7 +29,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
   }
 
   const { id } = await context.params;
-  const deleted = deleteSale(id);
+  const deleted = await deleteSale(id);
 
   if (!deleted) {
     return NextResponse.json({ error: "Sale not found." }, { status: 404 });

@@ -4,7 +4,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/components/auth/AuthProvider";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 
@@ -15,6 +15,7 @@ function LoginForm() {
 	const { user, loading, signIn, signInWithProvider } = useAuth();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 	const [rememberMe, setRememberMe] = useState(true);
 	const [submitting, setSubmitting] = useState(false);
 	const [error, setError] = useState("");
@@ -87,14 +88,21 @@ function LoginForm() {
 						<span className="text-sm font-semibold text-zinc-800">Contraseña</span>
 						<div className="relative">
 							<input
-								type="password"
+								type={showPassword ? "text" : "password"}
 								value={password}
 								onChange={(event) => setPassword(event.target.value)}
 								className="w-full rounded-2xl border border-zinc-300 bg-zinc-50 px-4 py-3.5 pr-12 text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-zinc-950"
 								placeholder="••••••••"
 								required
 							/>
-							<FontAwesomeIcon icon={faEye} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+							<button
+								type="button"
+								onClick={() => setShowPassword((value) => !value)}
+								className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 transition hover:text-zinc-700"
+								aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+							>
+								<FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+							</button>
 						</div>
 					</label>
 

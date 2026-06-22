@@ -29,6 +29,7 @@ const Header: React.FC<HeaderProps> = ({ variant = "solid" }) => {
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const firstName = user?.firstName?.trim().split(/\s+/)[0] || user?.displayName?.trim().split(/\s+/)[0] || "";
+  const canAccessAdmin = Boolean(user?.roles?.some((role) => role === "vendedor" || role === "admin"));
 
   const handleLogout = async () => {
     await signOut();
@@ -116,7 +117,7 @@ const Header: React.FC<HeaderProps> = ({ variant = "solid" }) => {
                 {isAccountMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-zinc-800 bg-zinc-900 p-2 shadow-2xl z-[60]">
                     <AccountLink href="/account" onClick={() => setIsAccountMenuOpen(false)} icon={faUser} label="Mi cuenta" />
-                    <AccountLink href="/admin" onClick={() => setIsAccountMenuOpen(false)} icon={faChartLine} label="Admin" />
+                    {canAccessAdmin && <AccountLink href="/admin" onClick={() => setIsAccountMenuOpen(false)} icon={faChartLine} label="Admin" />}
                     <AccountLink href="/account/settings" onClick={() => setIsAccountMenuOpen(false)} icon={faGear} label="Configuración" />
                     <AccountLink href="/account/orders" onClick={() => setIsAccountMenuOpen(false)} icon={faBoxOpen} label="Mis órdenes" />
                     <AccountLink href="/account/wishlist" onClick={() => setIsAccountMenuOpen(false)} icon={faHeart} label="Wishlist" />
@@ -205,6 +206,11 @@ const Header: React.FC<HeaderProps> = ({ variant = "solid" }) => {
                   <MobileNavLink href="/account/wishlist" onClick={() => setIsMobileMenuOpen(false)}>
                     Wishlist
                   </MobileNavLink>
+                  {canAccessAdmin && (
+                    <MobileNavLink href="/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                      Admin
+                    </MobileNavLink>
+                  )}
                   <button
                     type="button"
                     onClick={handleLogout}

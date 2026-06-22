@@ -16,7 +16,14 @@ export function getSessionUserFromRequest(request: Request) {
 
 export async function readJsonBody<T>(request: Request): Promise<Partial<T>> {
   try {
-    return (await request.json()) as Partial<T>;
+    const text = await request.text();
+    if (!text) return {};
+
+    try {
+      return JSON.parse(text) as Partial<T>;
+    } catch {
+      return {};
+    }
   } catch {
     return {};
   }

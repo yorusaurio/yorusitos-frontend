@@ -10,10 +10,10 @@ const kpis = [
     tone: "success",
   },
   {
-    label: "Pedidos activos",
+    label: "Ventas pendientes",
     value: "17",
-    delta: "5 urgentes",
-    note: "por despachar",
+    delta: "5 por confirmar",
+    note: "desde ventas",
     tone: "warning",
   },
   {
@@ -79,10 +79,10 @@ const alerts = [
     actionLabel: "Ir a inventario",
   },
   {
-    title: "Pedidos por vencer SLA",
-    detail: "4 pedidos superan 18 horas sin despacho.",
-    actionHref: "/admin/orders",
-    actionLabel: "Revisar pedidos",
+    title: "Ventas por atender",
+    detail: "4 ventas pendientes requieren confirmacion o despacho.",
+    actionHref: "/admin/sales",
+    actionLabel: "Revisar ventas",
   },
   {
     title: "Checkout con friccion",
@@ -94,7 +94,7 @@ const alerts = [
 
 const quickActions = [
   { href: "/admin/pos", label: "Nueva venta POS" },
-  { href: "/admin/orders", label: "Gestionar pedidos" },
+  { href: "/admin/sales", label: "Gestionar ventas" },
   { href: "/admin/inventory", label: "Actualizar stock" },
   { href: "/admin/store", label: "Editar tienda online" },
   { href: "/admin/contacts", label: "Responder contactos" },

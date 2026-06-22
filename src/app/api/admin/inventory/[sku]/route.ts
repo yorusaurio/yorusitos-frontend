@@ -12,7 +12,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ sku: 
 
   const { sku } = await context.params;
   const body = await readJsonBody<Partial<Omit<AdminInventoryItem, "sku">>>(request);
-  const item = updateInventoryItem(sku, body);
+  const item = await updateInventoryItem(sku, body);
 
   if (!item) {
     return NextResponse.json({ error: "Inventory item not found." }, { status: 404 });
@@ -29,7 +29,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ sku:
   }
 
   const { sku } = await context.params;
-  const deleted = deleteInventoryItem(sku);
+  const deleted = await deleteInventoryItem(sku);
 
   if (!deleted) {
     return NextResponse.json({ error: "Inventory item not found." }, { status: 404 });

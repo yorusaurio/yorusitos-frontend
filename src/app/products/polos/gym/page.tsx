@@ -5,6 +5,7 @@ import { mockProducts } from "@/data/mockProducts";
 import GymHero from "@/components/products/polos/gym/GymHero";
 import GymFilters from "@/components/products/polos/gym/GymFilters";
 import GymGrid from "@/components/products/polos/gym/GymGrid";
+import { useProductStock } from "@/hooks/useProductStock";
 
 export default function GymPage() {
   const [filtersVisible, setFiltersVisible] = useState(false);
@@ -12,6 +13,7 @@ export default function GymPage() {
   const [availabilityFilter, setAvailabilityFilter] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
   const [filteredProducts, setFilteredProducts] = useState(mockProducts);
+  const { stock, loading: stockLoading } = useProductStock();
 
   const toggleFilters = () => setFiltersVisible((prev) => !prev);
 
@@ -19,7 +21,7 @@ export default function GymPage() {
     let result = mockProducts.filter((product) => product.collection === "GYM");
 
     if (availabilityFilter) {
-      result = result.filter((product) => product.available);
+      result = result.filter((product) => (stock[product.id]?.available ?? 0) > 0);
     }
 
     result = result.filter(
@@ -48,7 +50,7 @@ export default function GymPage() {
 
   useEffect(() => {
     applyFiltersAndSort();
-  }, [sortOption, availabilityFilter, priceRange]);
+  }, [sortOption, availabilityFilter, priceRange, stock]);
 
   return (
     <div className="bg-white min-h-screen">
@@ -65,7 +67,7 @@ export default function GymPage() {
         setPriceRange={setPriceRange}
       />
       
-      <GymGrid products={filteredProducts} />
+      <GymGrid products={filteredProducts} stock={stock} stockLoading={stockLoading} />
     </div>
   );
 }

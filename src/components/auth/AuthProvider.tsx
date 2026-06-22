@@ -10,6 +10,8 @@ interface AuthCredentials {
 	firstName?: string;
 	lastName?: string;
 	phone?: string;
+	termsAccepted?: boolean;
+	marketingOptIn?: boolean;
 }
 
 interface AuthContextValue {

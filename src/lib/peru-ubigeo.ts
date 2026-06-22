@@ -24,46 +24,78 @@ export const departmentOptions: Option[] = departmentEntries
   .map((entry) => ({ code: entry.departamento, name: entry.nombre }))
   .sort((left, right) => left.name.localeCompare(right.name, "es"));
 
+const departmentByCode = new Map(departmentOptions.map((option) => [option.code, option]));
+const departmentByNormalizedName = new Map(departmentOptions.map((option) => [normalizeLabel(option.name), option]));
+
+const provinceOptionsByDepartment = new Map<string, Option[]>();
+const provinceByNormalizedNameByDepartment = new Map<string, Map<string, Option>>();
+
+for (const departmentOption of departmentOptions) {
+  const provinces = reniecEntries
+    .filter(
+      (entry) =>
+        entry.departamento === departmentOption.code &&
+        entry.distrito === "00" &&
+        entry.provincia !== "00",
+    )
+    .map((entry) => ({ code: entry.provincia, name: entry.nombre }))
+    .sort((left, right) => left.name.localeCompare(right.name, "es"));
+
+  provinceOptionsByDepartment.set(departmentOption.code, provinces);
+  provinceByNormalizedNameByDepartment.set(
+    departmentOption.code,
+    new Map(provinces.map((option) => [normalizeLabel(option.name), option])),
+  );
+}
+
+const districtOptionsByDepartmentProvince = new Map<string, Option[]>();
+const districtByNormalizedNameByDepartmentProvince = new Map<string, Map<string, Option>>();
+
+for (const [departmentCode, provinces] of provinceOptionsByDepartment) {
+  for (const province of provinces) {
+    const key = `${departmentCode}-${province.code}`;
+    const districts = reniecEntries
+      .filter(
+        (entry) =>
+          entry.departamento === departmentCode &&
+          entry.provincia === province.code &&
+          entry.distrito !== "00",
+      )
+      .map((entry) => ({ code: entry.distrito, name: entry.nombre }))
+      .sort((left, right) => left.name.localeCompare(right.name, "es"));
+
+    districtOptionsByDepartmentProvince.set(key, districts);
+    districtByNormalizedNameByDepartmentProvince.set(
+      key,
+      new Map(districts.map((option) => [normalizeLabel(option.name), option])),
+    );
+  }
+}
+
 export function findDepartmentOptionByName(departmentName: string): Option | undefined {
-  const normalized = normalizeLabel(departmentName);
-  return departmentOptions.find((option) => normalizeLabel(option.name) === normalized);
+  return departmentByNormalizedName.get(normalizeLabel(departmentName));
 }
 
 export function getProvinceOptions(departmentCode: string): Option[] {
-  const department = departmentEntries.find((entry) => entry.departamento === departmentCode);
-  if (!department) return [];
-
-  return reniecEntries
-    .filter((entry) => entry.departamento === department.departamento && entry.distrito === "00" && entry.provincia !== "00")
-    .map((entry) => ({ code: entry.provincia, name: entry.nombre }))
-    .sort((left, right) => left.name.localeCompare(right.name, "es"));
+  if (!departmentByCode.has(departmentCode)) return [];
+  return provinceOptionsByDepartment.get(departmentCode) || [];
 }
 
 export function findProvinceOptionByName(departmentCode: string, provinceName: string): Option | undefined {
-  const normalized = normalizeLabel(provinceName);
-  return getProvinceOptions(departmentCode).find((option) => normalizeLabel(option.name) === normalized);
+  const index = provinceByNormalizedNameByDepartment.get(departmentCode);
+  if (!index) return undefined;
+  return index.get(normalizeLabel(provinceName));
 }
 
 export function getDistrictOptions(departmentCode: string, provinceCode: string): Option[] {
-  const department = departmentEntries.find((entry) => entry.departamento === departmentCode);
-  if (!department) return [];
-
-  const province = reniecEntries.find((entry) => entry.departamento === department.departamento && entry.provincia === provinceCode && entry.distrito === "00");
-
-  if (!province) return [];
-
-  return reniecEntries
-    .filter(
-      (entry) =>
-        entry.departamento === department.departamento &&
-        entry.provincia === province.provincia &&
-        entry.distrito !== "00",
-    )
-    .map((entry) => ({ code: entry.distrito, name: entry.nombre }))
-    .sort((left, right) => left.name.localeCompare(right.name, "es"));
+  if (!departmentByCode.has(departmentCode)) return [];
+  const key = `${departmentCode}-${provinceCode}`;
+  return districtOptionsByDepartmentProvince.get(key) || [];
 }
 
 export function findDistrictOptionByName(departmentCode: string, provinceCode: string, districtName: string): Option | undefined {
-  const normalized = normalizeLabel(districtName);
-  return getDistrictOptions(departmentCode, provinceCode).find((option) => normalizeLabel(option.name) === normalized);
+  const key = `${departmentCode}-${provinceCode}`;
+  const index = districtByNormalizedNameByDepartmentProvince.get(key);
+  if (!index) return undefined;
+  return index.get(normalizeLabel(districtName));
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AUTH_COOKIE_NAME, mergeSessionUser, parseSessionUser } from "@/backend/auth.server";
+import { AUTH_COOKIE_NAME, parseSessionUser, updateSupabaseProfile } from "@/backend/auth.server";
 
 function getCookieValue(request: Request) {
   return request.headers
@@ -26,15 +26,20 @@ export async function PATCH(request: Request) {
   }
 
   const body = await readBody(request);
-  const user = mergeSessionUser(currentUser, body);
-  const response = NextResponse.json({ user });
-  response.cookies.set(AUTH_COOKIE_NAME, JSON.stringify(user), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: user.rememberMe ? 60 * 60 * 24 * 30 : undefined,
-  });
+  try {
+    const user = await updateSupabaseProfile(currentUser, body);
+    const response = NextResponse.json({ user });
+    response.cookies.set(AUTH_COOKIE_NAME, JSON.stringify(user), {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: user.rememberMe ? 60 * 60 * 24 * 30 : undefined,
+    });
 
-  return response;
+    return response;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Profile update failed.";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 }

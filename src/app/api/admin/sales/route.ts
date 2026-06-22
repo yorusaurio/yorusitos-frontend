@@ -10,7 +10,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "No active session." }, { status: 401 });
   }
 
-  return NextResponse.json({ sales: listSales() });
+  const sales = await listSales();
+  return NextResponse.json({ sales });
 }
 
 export async function POST(request: Request) {
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
   }
 
-  const sale = createSale({
+  const sale = await createSale({
     orderNumber: body.orderNumber,
     placedAt: body.placedAt,
     customerId: body.customerId,

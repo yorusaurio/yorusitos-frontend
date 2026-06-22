@@ -1,6 +1,7 @@
 export const AUTH_COOKIE_NAME = "yorusito-session";
 
 export type AuthProvider = "email" | "google" | "facebook" | "apple";
+export type UserRole = "guest" | "cliente" | "vendedor" | "admin";
 
 export interface AuthUser {
   id: string;
@@ -11,6 +12,7 @@ export interface AuthUser {
   initials: string;
   provider: AuthProvider;
   phone: string;
+  roles: UserRole[];
   rememberMe: boolean;
   updatedAt: string;
 }
@@ -21,6 +23,7 @@ export interface SessionUserInput {
   lastName?: string;
   phone?: string;
   provider?: AuthProvider;
+  roles?: UserRole[];
   rememberMe?: boolean;
 }
 
@@ -76,6 +79,7 @@ export function createSessionUser(input: SessionUserInput): AuthUser {
     initials: buildInitials(firstName, lastName),
     provider: input.provider ?? "email",
     phone: trimText(input.phone),
+    roles: input.roles?.length ? input.roles : ["cliente"],
     rememberMe: input.rememberMe ?? true,
     updatedAt: new Date().toISOString(),
   };

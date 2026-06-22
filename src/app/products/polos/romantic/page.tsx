@@ -5,6 +5,7 @@ import { mockProducts } from "@/data/mockProducts";
 import RomanticHero from "@/components/products/polos/romantic/RomanticHero";
 import RomanticFilters from "@/components/products/polos/romantic/RomanticFilters";
 import RomanticGrid from "@/components/products/polos/romantic/RomanticGrid";
+import { useProductStock } from "@/hooks/useProductStock";
 
 export default function RomanticPage() {
   const [filtersVisible, setFiltersVisible] = useState(false);
@@ -14,6 +15,7 @@ export default function RomanticPage() {
   const [filteredProducts, setFilteredProducts] = useState(
     mockProducts.filter((product) => product.collection === "Romantic")
   );
+  const { stock, loading: stockLoading } = useProductStock();
 
   const toggleFilters = () => setFiltersVisible((prev) => !prev);
 
@@ -21,7 +23,7 @@ export default function RomanticPage() {
     let result = mockProducts.filter((product) => product.collection === "Romantic");
 
     if (availabilityFilter) {
-      result = result.filter((product) => product.available);
+      result = result.filter((product) => (stock[product.id]?.available ?? 0) > 0);
     }
 
     result = result.filter(
@@ -50,7 +52,7 @@ export default function RomanticPage() {
 
   useEffect(() => {
     applyFiltersAndSort();
-  }, [sortOption, availabilityFilter, priceRange]);
+  }, [sortOption, availabilityFilter, priceRange, stock]);
 
   return (
     <div className="bg-white min-h-screen">
@@ -67,7 +69,7 @@ export default function RomanticPage() {
         setPriceRange={setPriceRange}
       />
       
-      <RomanticGrid products={filteredProducts} />
+      <RomanticGrid products={filteredProducts} stock={stock} stockLoading={stockLoading} />
     </div>
   );
 }

@@ -13,11 +13,13 @@ import SearchFilterBar from "@/components/products/SearchFilterBar";
 import CategoriesGrid from "@/components/products/CategoriesGrid";
 import CollectionsGrid from "@/components/products/CollectionsGrid";
 import ProductsGrid from "@/components/products/ProductsGrid";
+import { useProductStock } from "@/hooks/useProductStock";
 
 const ProductsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const { stock, loading: stockLoading } = useProductStock();
 
   const categories = [
     {
@@ -101,7 +103,7 @@ const ProductsPage: React.FC = () => {
       
       <CollectionsGrid collections={collections} />
       
-      <ProductsGrid products={filteredProducts} viewMode={viewMode} />
+      <ProductsGrid products={filteredProducts} viewMode={viewMode} stock={stock} stockLoading={stockLoading} />
     </main>
   );
 };

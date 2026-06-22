@@ -7,6 +7,7 @@ interface CrudModalProps {
   title: string;
   saving: boolean;
   hasUnsavedChanges?: boolean;
+  maxWidthClass?: string;
   onClose: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   children: ReactNode;
@@ -17,6 +18,7 @@ export default function CrudModal({
   title,
   saving,
   hasUnsavedChanges = false,
+  maxWidthClass = "max-w-6xl",
   onClose,
   onSubmit,
   children,
@@ -36,14 +38,14 @@ export default function CrudModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-8 backdrop-blur-[2px]"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 px-3 py-3 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-label={title}
     >
-      <div className="w-full max-w-6xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_24px_80px_rgba(0,0,0,0.18)]">
-        <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
-          <h3 className="text-lg font-bold text-zinc-900">{title}</h3>
+      <div className={`flex max-h-[calc(100vh-1.5rem)] w-full ${maxWidthClass} flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_24px_80px_rgba(0,0,0,0.18)]`}>
+        <div className="flex shrink-0 items-center justify-between border-b border-zinc-200 px-5 py-3">
+          <h3 className="text-base font-bold text-zinc-900">{title}</h3>
           <button
             type="button"
             onClick={handleRequestClose}
@@ -55,11 +57,11 @@ export default function CrudModal({
           </button>
         </div>
 
-        <div className="px-6 py-5">
-          <form className="space-y-5" onSubmit={onSubmit}>
+        <div className="min-h-0 overflow-y-auto px-5 py-4">
+          <form className="space-y-3" onSubmit={onSubmit}>
             <div>{children}</div>
 
-            <div className="flex items-center justify-end gap-2 border-t border-zinc-200 pt-4">
+            <div className="sticky bottom-0 -mx-5 flex items-center justify-end gap-2 border-t border-zinc-200 bg-white/95 px-5 pt-3 pb-1 backdrop-blur">
               <button
                 type="button"
                 onClick={handleRequestClose}

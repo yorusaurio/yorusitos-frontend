@@ -6,8 +6,10 @@ import SaleModal from "@/components/admin/SaleModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faPen, faPlus, faXmark } from "@fortawesome/free-solid-svg-icons";
 import type { AdminSale } from "@/lib/admin-data";
+import currency from "currency.js";
 
 type SaleForm = Omit<AdminSale, "id">;
+const IGV_RATE = 0.18;
 
 const initialForm: SaleForm = {
   orderNumber: "",
@@ -30,6 +32,7 @@ const initialForm: SaleForm = {
   source: "web",
   notes: "",
   salesRepId: "",
+  items: [],
 };
 
 export default function AdminSalesPage() {
@@ -122,7 +125,9 @@ export default function AdminSalesPage() {
           customerType: form.customerType,
           amount: computedSaleAmount,
           exchangeRate: form.exchangeRate,
+          shippingTotal: 0,
           salesRepId: form.salesRepId || sellerId || undefined,
+          items: form.items || [],
         }),
       });
       const payload = await response.json();
@@ -154,6 +159,7 @@ export default function AdminSalesPage() {
   }
 
   function handleEdit(sale: AdminSale) {
+    const itemTotals = calculateItemTotals(sale.items || []);
     const nextForm: SaleForm = {
       orderNumber: sale.orderNumber || sale.id,
       placedAt: sale.placedAt || new Date().toISOString().slice(0, 10),
@@ -165,16 +171,17 @@ export default function AdminSalesPage() {
       customerType: sale.customerType || "MINORISTA",
       currency: sale.currency || "SOLES",
       exchangeRate: sale.exchangeRate || 1,
-      subtotal: sale.subtotal ?? 0,
-      discountTotal: sale.discountTotal ?? 0,
-      shippingTotal: sale.shippingTotal ?? 0,
-      taxTotal: sale.taxTotal ?? 0,
-      amount: sale.amount,
+      subtotal: sale.items?.length ? itemTotals.taxableSubtotal : sale.subtotal ?? 0,
+      discountTotal: sale.items?.length ? itemTotals.discountTotal : sale.discountTotal ?? 0,
+      shippingTotal: sale.items?.length ? 0 : sale.shippingTotal ?? 0,
+      taxTotal: sale.items?.length ? itemTotals.taxTotal : sale.taxTotal ?? 0,
+      amount: sale.items?.length ? itemTotals.grossTotal : sale.amount,
       paymentStatus: sale.paymentStatus || "Pendiente",
       status: sale.status,
       source: sale.source || "web",
       notes: sale.notes || "",
       salesRepId: sale.salesRepId || sellerId,
+      items: sale.items || [],
     };
 
     console.log("handleEdit -> opening modal for", sale.id);
@@ -322,27 +329,27 @@ export default function AdminSalesPage() {
     }
   }, []);
 
-  function parseMoneyInput(value: string) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
   function calculateAmount(nextForm: SaleForm) {
-    return Math.max(0, (nextForm.subtotal || 0) - (nextForm.discountTotal || 0) + (nextForm.shippingTotal || 0) + (nextForm.taxTotal || 0));
+    if (nextForm.items?.length) {
+      return calculateItemTotals(nextForm.items).grossTotal;
+    }
+
+    return Math.max(0, currency(nextForm.subtotal || 0).subtract(nextForm.discountTotal || 0).add(nextForm.taxTotal || 0).value);
   }
 
-  function updateMoneyField(field: "subtotal" | "discountTotal" | "shippingTotal" | "taxTotal", value: string) {
-    setForm((previous) => {
-      const nextForm = {
-        ...previous,
-        [field]: parseMoneyInput(value),
-      } as SaleForm;
+  function calculateItemTotals(items: NonNullable<SaleForm["items"]>) {
+    const grossSubtotal = items.reduce((sum, item) => currency(sum).add(currency(item.unitPrice).multiply(item.quantity)).value, 0);
+    const discountTotal = items.reduce((sum, item) => currency(sum).add(item.discountTotal).value, 0);
+    const grossTotal = Math.max(0, currency(grossSubtotal).subtract(discountTotal).value);
+    const taxableSubtotal = currency(grossTotal).divide(1 + IGV_RATE).value;
+    const taxTotal = currency(grossTotal).subtract(taxableSubtotal).value;
 
-      return {
-        ...nextForm,
-        amount: calculateAmount(nextForm),
-      };
-    });
+    return {
+      grossTotal: currency(grossTotal).value,
+      taxableSubtotal: currency(taxableSubtotal).value,
+      discountTotal: currency(discountTotal).value,
+      taxTotal: currency(taxTotal).value,
+    };
   }
 
   const saleFilterOptions = useMemo(
@@ -415,7 +422,7 @@ export default function AdminSalesPage() {
     return matchesSearch && matchesSaleFilter && matchesChannelFilter && matchesCustomerFilter && matchesStatusFilter && matchesAmountFilter;
   });
 
-  const liveAmount = Number.isFinite(form.amount) ? form.amount.toFixed(2) : "0.00";
+  const liveAmount = Number.isFinite(form.amount) ? currency(form.amount).format({ symbol: "" }) : "0.00";
 
   const keptFields = [
     { label: "channel", value: "Se queda" },
@@ -763,7 +770,7 @@ export default function AdminSalesPage() {
                   <td className="py-2 font-semibold">{sale.id}</td>
                   <td className="py-2 uppercase">{sale.channel}</td>
                   <td className="py-2">{sale.customer}</td>
-                  <td className="py-2">S/ {sale.amount.toFixed(2)}</td>
+                  <td className="py-2">{currency(sale.amount, { symbol: "S/ " }).format()}</td>
                   <td className="py-2">
                     <span className={[
                       "rounded-full px-2 py-1 text-xs font-bold",
@@ -794,7 +801,6 @@ export default function AdminSalesPage() {
         setForm={setForm}
         sellerName={sellerName}
         editingId={editingId}
-        updateMoneyField={updateMoneyField}
         computedSaleAmount={computedSaleAmount}
       />
     </AdminShell>

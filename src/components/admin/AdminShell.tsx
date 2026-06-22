@@ -12,7 +12,6 @@ import {
   faAddressBook,
   faStore,
   faGear,
-  faClipboardList,
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
@@ -34,7 +33,6 @@ const navItems: AdminNavItem[] = [
   { href: "/admin", label: "Dashboard", icon: faChartLine },
   { href: "/admin/pos", label: "Punto de ventas", icon: faCashRegister },
   { href: "/admin/sales", label: "Ventas", icon: faReceipt },
-  { href: "/admin/orders", label: "Pedidos", icon: faClipboardList, badge: "MVP+" },
   { href: "/admin/inventory", label: "Inventario", icon: faBox },
   { href: "/admin/contacts", label: "Contactos", icon: faAddressBook },
   { href: "/admin/customers", label: "Clientes", icon: faUsers, badge: "MVP+" },

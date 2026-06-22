@@ -5,6 +5,7 @@ import { mockProducts } from "@/data/mockProducts";
 import SuperstarsHero from "@/components/products/polos/superstars/SuperstarsHero";
 import SuperstarsFilters from "@/components/products/polos/superstars/SuperstarsFilters";
 import SuperstarsGrid from "@/components/products/polos/superstars/SuperstarsGrid";
+import { useProductStock } from "@/hooks/useProductStock";
 
 export default function SuperStarsPage() {
   const [filtersVisible, setFiltersVisible] = useState(false);
@@ -14,6 +15,7 @@ export default function SuperStarsPage() {
   const [filteredProducts, setFilteredProducts] = useState(
     mockProducts.filter((product) => product.collection === "SuperStars")
   );
+  const { stock, loading: stockLoading } = useProductStock();
 
   const toggleFilters = () => setFiltersVisible((prev) => !prev);
 
@@ -21,7 +23,7 @@ export default function SuperStarsPage() {
     let result = mockProducts.filter((product) => product.collection === "SuperStars");
 
     if (availabilityFilter) {
-      result = result.filter((product) => product.available);
+      result = result.filter((product) => (stock[product.id]?.available ?? 0) > 0);
     }
 
     result = result.filter(
@@ -50,7 +52,7 @@ export default function SuperStarsPage() {
 
   useEffect(() => {
     applyFiltersAndSort();
-  }, [sortOption, availabilityFilter, priceRange]);
+  }, [sortOption, availabilityFilter, priceRange, stock]);
 
   return (
     <div className="bg-white min-h-screen">
@@ -67,7 +69,7 @@ export default function SuperStarsPage() {
         setPriceRange={setPriceRange}
       />
       
-      <SuperstarsGrid products={filteredProducts} />
+      <SuperstarsGrid products={filteredProducts} stock={stock} stockLoading={stockLoading} />
     </div>
   );
 }

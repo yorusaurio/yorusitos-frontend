@@ -1,59 +1,71 @@
-import { mockProducts } from "@/data/mockProducts";
-import type { AccountOrder, WishlistItem } from "@/lib/account-data";
+import { supabaseTableRequest } from "@/backend/supabase.server";
+import type { AccountOrder, AccountOrderItem, WishlistItem } from "@/lib/account-data";
 
-const fallbackImage = "/images/polo.avif";
-const featuredProducts = mockProducts.slice(0, 8);
-
-export function getDemoOrders(): AccountOrder[] {
-  return [
-    {
-      id: "ORD-25061",
-      placedAt: "18 mayo 2026",
-      status: "En camino",
-      total: 105,
-      shipping: "Lima Metropolitana",
-      items: [
-        {
-          id: featuredProducts[0]?.id ?? 1,
-          name: featuredProducts[0]?.name ?? "Producto destacado",
-          quantity: 2,
-          price: featuredProducts[0]?.price ?? 35,
-          image: featuredProducts[0]?.images?.[0] ?? fallbackImage,
-        },
-        {
-          id: featuredProducts[1]?.id ?? 2,
-          name: featuredProducts[1]?.name ?? "Producto destacado",
-          quantity: 1,
-          price: featuredProducts[1]?.price ?? 35,
-          image: featuredProducts[1]?.images?.[0] ?? fallbackImage,
-        },
-      ],
-    },
-    {
-      id: "ORD-24988",
-      placedAt: "12 mayo 2026",
-      status: "Entregado",
-      total: 70,
-      shipping: "Recojo en tienda",
-      items: [
-        {
-          id: featuredProducts[2]?.id ?? 3,
-          name: featuredProducts[2]?.name ?? "Producto destacado",
-          quantity: 2,
-          price: featuredProducts[2]?.price ?? 35,
-          image: featuredProducts[2]?.images?.[0] ?? fallbackImage,
-        },
-      ],
-    },
-  ];
+interface AccountOrderRow {
+  id: string;
+  placed_at: string;
+  status: string;
+  total: number;
+  shipping: string | null;
+  account_order_items?: AccountOrderItemRow[];
 }
 
-export function getDemoWishlist(): WishlistItem[] {
-  return featuredProducts.slice(0, 6).map((product) => ({
-    id: product.id,
-    name: product.name,
-    price: product.price,
-    collection: product.collection,
-    image: product.images?.[0] ?? fallbackImage,
-  }));
+interface AccountOrderItemRow {
+  product_id: number;
+  name: string;
+  quantity: number;
+  price: number;
+  image: string | null;
+}
+
+interface WishlistItemRow {
+  product_id: number;
+  name: string;
+  price: number;
+  collection: string;
+  image: string | null;
+}
+
+function orderItemFromRow(row: AccountOrderItemRow): AccountOrderItem {
+  return {
+    id: row.product_id,
+    name: row.name,
+    quantity: row.quantity,
+    price: row.price,
+    image: row.image ?? "/images/polo.avif",
+  };
+}
+
+function orderFromRow(row: AccountOrderRow): AccountOrder {
+  return {
+    id: row.id,
+    placedAt: row.placed_at,
+    status: row.status,
+    total: row.total,
+    shipping: row.shipping ?? "",
+    items: row.account_order_items?.map(orderItemFromRow) ?? [],
+  };
+}
+
+function wishlistItemFromRow(row: WishlistItemRow): WishlistItem {
+  return {
+    id: row.product_id,
+    name: row.name,
+    price: row.price,
+    collection: row.collection,
+    image: row.image ?? "/images/polo.avif",
+  };
+}
+
+export async function listAccountOrders(userId: string) {
+  const query = `/account_orders?user_id=eq.${encodeURIComponent(userId)}&select=*,account_order_items(*)&order=placed_at.desc`;
+  const rows = await supabaseTableRequest<AccountOrderRow[]>(query);
+  return rows.map(orderFromRow);
+}
+
+export async function listWishlistItems(userId: string) {
+  const rows = await supabaseTableRequest<WishlistItemRow[]>(
+    `/wishlist_items?user_id=eq.${encodeURIComponent(userId)}&select=*&order=created_at.desc`
+  );
+  return rows.map(wishlistItemFromRow);
 }

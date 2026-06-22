@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React from "react";
+import type { ProductStockMap } from "@/lib/product-stock";
 
 interface RomanticProduct {
 	id: number;
@@ -15,9 +16,11 @@ interface RomanticProduct {
 
 interface RomanticGridProps {
 	products: RomanticProduct[];
+	stock?: ProductStockMap;
+	stockLoading?: boolean;
 }
 
-const RomanticGrid: React.FC<RomanticGridProps> = ({ products }) => {
+const RomanticGrid: React.FC<RomanticGridProps> = ({ products, stock = {}, stockLoading = false }) => {
 	if (products.length === 0) {
 		return (
 			<section className="py-20 bg-white">
@@ -33,15 +36,18 @@ const RomanticGrid: React.FC<RomanticGridProps> = ({ products }) => {
 		<section className="py-16 bg-white">
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-					{products.map((product) => (
+					{products.map((product) => {
+						const inStock = stockLoading || (stock[product.id]?.available ?? 0) > 0;
+						return (
 						<Link key={product.id} href={`/products/${product.id}`}>
 							<article className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-								<div className="aspect-[3/4] overflow-hidden bg-zinc-100">
+								<div className="relative aspect-[3/4] overflow-hidden bg-zinc-100">
 									<img
 										src={product.images[0]}
 										alt={product.name}
-										className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+										className={`h-full w-full object-cover transition duration-500 group-hover:scale-105 ${inStock ? "" : "grayscale opacity-60"}`}
 									/>
+									{!inStock ? <span className="absolute left-3 top-3 rounded-full bg-red-600 px-3 py-1 text-xs font-black uppercase tracking-wide text-white">Sin stock</span> : null}
 								</div>
 								<div className="space-y-2 p-4">
 									<p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">{product.collection}</p>
@@ -51,15 +57,15 @@ const RomanticGrid: React.FC<RomanticGridProps> = ({ products }) => {
 										<span className="text-xl font-bold text-zinc-900">S/ {product.price.toFixed(2)}</span>
 										<span className={[
 											"rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide",
-											product.available ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700",
+											inStock ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700",
 										].join(" ")}>
-											{product.available ? "Disponible" : "Agotado"}
+											{inStock ? "Disponible" : "Sin stock"}
 										</span>
 									</div>
 								</div>
 							</article>
 						</Link>
-					))}
+					)})}
 				</div>
 			</div>
 		</section>
