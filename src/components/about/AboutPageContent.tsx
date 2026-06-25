@@ -23,7 +23,7 @@ export default function AboutPageContent() {
         <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 lg:px-8 lg:py-28">
           <p className="text-[11px] font-bold uppercase tracking-[0.42em] text-zinc-400">Quiénes somos</p>
           <h1 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-            Ropa con onda, hecha en Perú
+            Ropa con diseño propio, hecha en Perú
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-base leading-8 text-zinc-500 sm:text-lg">
             Somos Yorusito. Hacemos polos con estampados únicos para que lleves algo que de verdad te
