@@ -1,5 +1,6 @@
 import type { AdminContact, AdminCustomerInsight, AdminCustomerSummary, AdminInventoryItem, AdminInventoryProduct, AdminInventoryProductInput, AdminSale, AdminSaleItem } from "@/lib/admin-data";
 import type { ProductStock, ProductStockMap } from "@/lib/product-stock";
+import { deriveSubcollection } from "@/lib/product-subcollection";
 import { supabaseTableRequest } from "@/backend/supabase.server";
 import { mockProducts } from "@/data/mockProducts";
 
@@ -50,9 +51,11 @@ interface AdminInventoryRow {
   parent_sku: string | null;
   product_id: number | null;
   product: string;
+  summary: string | null;
   description: string | null;
   category: string | null;
   collection: string | null;
+  subcollection: string | null;
   color: string | null;
   size: string | null;
   options: Record<string, string> | null;
@@ -191,9 +194,11 @@ function inventoryFromRow(row: AdminInventoryRow): AdminInventoryItem {
     parentSku: row.parent_sku ?? undefined,
     productId: row.product_id ?? undefined,
     product: row.product,
+    summary: row.summary ?? undefined,
     description: row.description ?? undefined,
     category: row.category ?? undefined,
     collection: row.collection ?? undefined,
+    subcollection: row.subcollection ?? undefined,
     color: row.color ?? undefined,
     size: row.size ?? undefined,
     options: row.options ?? undefined,
@@ -240,9 +245,11 @@ function catalogInventoryRows(): AdminInventoryRow[] {
         parent_sku: parentSku,
         product_id: product.id,
         product: product.name,
+        summary: product.description,
         description: product.detailedDescription || product.description,
         category: "Polo",
         collection: product.collection,
+        subcollection: deriveSubcollection(product.name, product.collection),
         color,
         size,
         options: { color, size },
@@ -274,8 +281,10 @@ function enrichRowsWithCatalogMetadata(rows: AdminInventoryRow[]) {
 
     return {
       ...row,
+      summary: row.summary ?? product.description,
       description: shouldUseCatalogDescription ? detailedDescription : row.description,
       category: row.category ?? "Polo",
+      subcollection: row.subcollection ?? deriveSubcollection(product.name, product.collection),
       image: row.image ?? product.images?.[0] ?? null,
     };
   });
@@ -467,9 +476,11 @@ export async function listInventoryProducts(): Promise<AdminInventoryProduct[]> 
         productId: variant.productId,
         parentSku,
         product: variant.product,
+        summary: variant.summary,
         description: variant.description,
         category: variant.category,
         collection: variant.collection,
+        subcollection: variant.subcollection ?? deriveSubcollection(variant.product, variant.collection),
         images: variant.image ? [variant.image] : [],
         basePrice: variant.price,
         status: variant.status ?? "active",
@@ -542,6 +553,7 @@ export async function createInventoryItem(input: AdminInventoryItem) {
         parent_sku: input.parentSku,
         product_id: input.productId,
         product: input.product,
+        summary: input.summary,
         description: input.description,
         category: input.category,
         collection: input.collection,
@@ -596,9 +608,11 @@ export async function upsertInventoryProduct(input: AdminInventoryProductInput) 
         parent_sku: parentSku,
         product_id: productId,
         product: input.product,
+        summary: input.summary,
         description: input.description,
         category: input.category,
         collection,
+        subcollection: input.subcollection || deriveSubcollection(input.product, collection),
         color,
         size,
         options: { color, size },
@@ -644,9 +658,11 @@ export async function updateInventoryItem(sku: string, patch: Partial<Omit<Admin
         product: patch.product,
         parent_sku: patch.parentSku,
         product_id: patch.productId,
+        summary: patch.summary,
         description: patch.description,
         category: patch.category,
         collection: patch.collection,
+        subcollection: patch.subcollection,
         color: patch.color,
         size: patch.size,
         options: patch.options,

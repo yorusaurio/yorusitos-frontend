@@ -45,9 +45,11 @@ export interface AdminInventoryItem {
   parentSku?: string;
   productId?: number;
   product: string;
+  summary?: string;
   description?: string;
   category?: string;
   collection?: string;
+  subcollection?: string;
   color?: string;
   size?: string;
   options?: Record<string, string>;
@@ -66,9 +68,11 @@ export interface AdminInventoryProduct {
   productId?: number;
   parentSku: string;
   product: string;
+  summary?: string;
   description?: string;
   category?: string;
   collection?: string;
+  subcollection?: string;
   images: string[];
   basePrice?: number;
   status: "active" | "draft" | "archived";
@@ -83,9 +87,11 @@ export interface AdminInventoryProductInput {
   productId?: number;
   parentSku?: string;
   product: string;
+  summary?: string;
   description?: string;
   category?: string;
   collection?: string;
+  subcollection?: string;
   image?: string;
   basePrice: number;
   colors: string[];

@@ -32,6 +32,7 @@ export async function POST(request: Request) {
     parentSku: body.parentSku,
     productId: body.productId,
     product: body.product,
+    summary: body.summary,
     description: body.description,
     category: body.category,
     collection: body.collection,

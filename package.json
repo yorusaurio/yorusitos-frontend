@@ -20,7 +20,6 @@
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
-    "@react-pdf/renderer": "^4.5.1",
     "@supabase/supabase-js": "^2.78.0",
     "currency.js": "^2.0.4",
     "next": "^15.1.11",

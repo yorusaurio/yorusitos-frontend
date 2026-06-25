@@ -1,134 +1,86 @@
-"use client";
+import Link from "next/link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRight, faShirt, faWind, faPersonWalking } from "@fortawesome/free-solid-svg-icons";
 
-import React, { useMemo, useState } from "react";
-import { mockProducts } from "@/data/mockProducts";
-import ProductsSidebar from "@/components/products/ProductsSidebar";
-import ProductsGrid from "@/components/products/ProductsGrid";
-import { useProductStock } from "@/hooks/useProductStock";
+const categories = [
+  {
+    name: "Polos",
+    href: "/products/polos",
+    description: "Diseños exclusivos, estampados premium y opciones personalizables.",
+    icon: faShirt,
+    featured: true,
+  },
+  {
+    name: "Hoodies",
+    href: "/products/hoodies",
+    description: "Comodidad y estilo para el día a día o entrenamientos.",
+    icon: faWind,
+    featured: false,
+  },
+  {
+    name: "Pantalones",
+    href: "/products/pants",
+    description: "Prendas versátiles con acabados pensados para moverte con estilo.",
+    icon: faPersonWalking,
+    featured: false,
+  },
+];
 
-const ProductsPage: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCollection, setSelectedCollection] = useState<string>("all");
-  const [selectedColor, setSelectedColor] = useState<string>("all");
-  const [selectedSize, setSelectedSize] = useState<string>("all");
-  const [minPrice, setMinPrice] = useState<number>(1);
-  const [maxPrice, setMaxPrice] = useState<number>(210);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const { stock, loading: stockLoading } = useProductStock();
-
-  const availableCollections = useMemo(
-    () => Array.from(new Set(mockProducts.map((product) => product.collection))),
-    []
-  );
-
-  const availableColors = useMemo(
-    () => Array.from(new Set(mockProducts.flatMap((product) => product.colors ?? []))),
-    []
-  );
-
-  const availableSizes = useMemo(
-    () => Array.from(new Set(mockProducts.flatMap((product) => product.sizes ?? []))),
-    []
-  );
-
-  const filteredProducts = mockProducts.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCollection = selectedCollection === "all" || product.collection === selectedCollection;
-    const matchesColor = selectedColor === "all" || (product.colors ?? []).includes(selectedColor);
-    const matchesSize = selectedSize === "all" || (product.sizes ?? []).includes(selectedSize);
-    const priceFloor = Math.min(minPrice, maxPrice);
-    const priceCeiling = Math.max(minPrice, maxPrice);
-    const matchesPrice = product.price >= priceFloor && product.price <= priceCeiling;
-
-    return matchesSearch && matchesCollection && matchesColor && matchesSize && matchesPrice;
-  });
-
+export default function ProductsPage() {
   return (
-<<<<<<< HEAD
-    <main className="bg-white min-h-screen pt-20">
-      <SearchFilterBar 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        resultsCount={filteredProducts.length}
-      />
-      
-      <CategoriesGrid categories={categories} />
-      
-      <CollectionsGrid collections={collections} />
-      
-      <ProductsGrid products={filteredProducts} viewMode={viewMode} stock={stock} stockLoading={stockLoading} />
-=======
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(0,0,0,0.05),_transparent_28%),linear-gradient(to_bottom,_#ffffff,_#fafafa)] pt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
-        <section className="mb-10 overflow-hidden rounded-[2rem] border border-gray-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
-          <div className="grid gap-8 lg:grid-cols-[1.3fr,0.7fr]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(0,0,0,0.04),_transparent_30%),linear-gradient(to_bottom,_#ffffff,_#f7f7f7)] pt-20">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <section className="mb-12 overflow-hidden rounded-[2rem] border border-gray-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr,0.8fr]">
             <div className="p-8 sm:p-10 lg:p-12">
-              <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-gray-600">
-                Catálogo
-              </div>
-              <h1 className="mt-5 max-w-2xl text-4xl font-semibold tracking-tight text-black sm:text-5xl lg:text-6xl">
-                Encuentra piezas con más presencia y menos ruido visual.
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">Catálogo general</p>
+              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-black sm:text-5xl lg:text-6xl">
+                Explora por categoría
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-gray-600 sm:text-lg">
-                Explora todos los productos y afina la búsqueda con filtros claros, visuales y cómodos de usar.
+                Elige el tipo de prenda que buscas y entra directo al catálogo correspondiente.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3 text-sm text-gray-600">
-                <span className="rounded-full bg-gray-100 px-4 py-2 font-medium text-gray-700">Colecciones</span>
-                <span className="rounded-full bg-gray-100 px-4 py-2 font-medium text-gray-700">Precio</span>
-                <span className="rounded-full bg-gray-100 px-4 py-2 font-medium text-gray-700">Color</span>
-                <span className="rounded-full bg-gray-100 px-4 py-2 font-medium text-gray-700">Talla</span>
-              </div>
             </div>
 
-            <div className="flex items-end justify-between border-t border-gray-200 bg-gradient-to-br from-black via-zinc-900 to-zinc-700 p-8 text-white lg:border-l lg:border-t-0 lg:p-10">
+            <div className="flex items-end border-t border-gray-200 bg-gradient-to-br from-black via-zinc-900 to-zinc-700 p-8 text-white lg:border-l lg:border-t-0 lg:p-10">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-white/60">Resultados</p>
-                <p className="mt-3 text-5xl font-semibold leading-none">{filteredProducts.length}</p>
-                <p className="mt-3 max-w-xs text-sm leading-6 text-white/70">
-                  {filteredProducts.length === 1 ? "producto encontrado" : "productos encontrados"} con los filtros actuales.
+                <p className="text-xs uppercase tracking-[0.3em] text-white/60">Yorusito</p>
+                <p className="mt-3 text-3xl font-semibold">Prendas con identidad</p>
+                <p className="mt-3 max-w-sm text-sm leading-6 text-white/70">
+                  Polos, hoodies y pantalones diseñados para destacar con calidad premium.
                 </p>
-              </div>
-              <div className="hidden rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm md:block">
-                <p className="text-xs uppercase tracking-[0.25em] text-white/55">Vista actual</p>
-                <p className="mt-2 text-sm font-medium">{viewMode === "grid" ? "Cuadrícula" : "Lista"}</p>
               </div>
             </div>
           </div>
         </section>
 
-        <div className="grid gap-8 lg:grid-cols-[340px,1fr] items-start">
-          <ProductsSidebar
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            selectedCollection={selectedCollection}
-            setSelectedCollection={setSelectedCollection}
-            collections={availableCollections}
-            minPrice={minPrice}
-            setMinPrice={setMinPrice}
-            maxPrice={maxPrice}
-            setMaxPrice={setMaxPrice}
-            priceMin={1}
-            priceMax={210}
-            selectedColor={selectedColor}
-            setSelectedColor={setSelectedColor}
-            colors={availableColors}
-            selectedSize={selectedSize}
-            setSelectedSize={setSelectedSize}
-            sizes={availableSizes}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-          />
-          <ProductsGrid products={filteredProducts} viewMode={viewMode} />
+        <div className="grid gap-6 md:grid-cols-3">
+          {categories.map((category) => (
+            <Link key={category.name} href={category.href} className="group">
+              <article className="flex h-full flex-col rounded-[1.75rem] border border-gray-200 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-black hover:shadow-xl">
+                <div className="mb-6 flex items-start justify-between">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black text-white">
+                    <FontAwesomeIcon icon={category.icon} className="text-xl" />
+                  </div>
+                  {category.featured ? (
+                    <span className="rounded-full bg-black px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+                      Principal
+                    </span>
+                  ) : null}
+                </div>
+
+                <h2 className="text-2xl font-bold text-black">{category.name}</h2>
+                <p className="mt-3 flex-1 text-sm leading-6 text-gray-600">{category.description}</p>
+
+                <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-5 text-sm font-semibold text-black">
+                  <span>Ver catálogo</span>
+                  <FontAwesomeIcon icon={faArrowRight} className="transition-transform duration-300 group-hover:translate-x-1" />
+                </div>
+              </article>
+            </Link>
+          ))}
         </div>
       </div>
->>>>>>> b723d4963cdd040f69a4a2348e70c9dd55d3d311
     </main>
   );
-};
-
-export default ProductsPage;
+}

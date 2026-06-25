@@ -56,8 +56,8 @@ const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
   const activePriceMax = Math.max(minPrice, maxPrice);
 
   return (
-    <aside className="space-y-6">
-      <div className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-[0_18px_40px_rgba(0,0,0,0.05)]">
+    <aside className="space-y-4 lg:sticky lg:top-24">
+      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div className="mb-5 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-black text-white shadow-lg shadow-black/10">
             <FontAwesomeIcon icon={faSearch} />
@@ -70,14 +70,14 @@ const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
 
         <input
           type="text"
-          placeholder="Buscar productos"
+          placeholder="Buscar polos..."
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
           className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-black focus:bg-white"
         />
       </div>
 
-      <div className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-[0_18px_40px_rgba(0,0,0,0.05)]">
+      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div className="mb-5 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-black text-white shadow-lg shadow-black/10">
             <FontAwesomeIcon icon={faFilter} />
@@ -184,7 +184,7 @@ const ProductsSidebar: React.FC<ProductsSidebarProps> = ({
         </div>
       </div>
 
-      <div className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-[0_18px_40px_rgba(0,0,0,0.05)]">
+      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
         <p className="mb-3 text-sm font-semibold text-gray-900">Vista</p>
         <div className="flex gap-2 rounded-[1.5rem] bg-gray-100 p-1.5">
           <button

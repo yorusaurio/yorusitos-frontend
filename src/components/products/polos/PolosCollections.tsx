@@ -49,7 +49,7 @@ export default function PolosCollections() {
           {collections.map((collection) => (
             <Link
               key={collection.slug}
-              href={`/products/polos/${collection.slug}`}
+              href={collection.slug === "superstars" ? "/products/polos?collection=SuperStars" : `/products/polos/${collection.slug}`}
               className="group"
             >
               <div className="bg-white border-2 border-black p-8 hover:bg-black hover:text-white transition-all duration-300">

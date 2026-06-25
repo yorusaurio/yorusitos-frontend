@@ -7,7 +7,7 @@ import FeaturedProducts from "@/components/home/FeaturedProducts";
 
 const HomePage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-black">
       <Hero />
       <FeaturedProducts />
     </div>

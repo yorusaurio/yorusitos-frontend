@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AdminShell from "@/components/admin/AdminShell";
 import CrudModal from "@/components/admin/CrudModal";
 import type { AdminInventoryItem, AdminInventoryProduct, AdminInventoryProductInput } from "@/lib/admin-data";
+import { deriveSubcollection } from "@/lib/product-subcollection";
 import type { CatalogFormat, CatalogOptions, CatalogPriceMode } from "@/components/admin/CatalogGeneratorModal";
 
 const CatalogGeneratorModal = dynamic(() => import("@/components/admin/CatalogGeneratorModal"), {
@@ -39,9 +40,11 @@ const initialForm: InventoryForm = {
 };
 const initialProductForm: ProductEditorForm = {
   product: "",
+  summary: "",
   description: "",
   category: "Polo",
   collection: "",
+  subcollection: "",
   image: "",
   basePrice: 35,
   colors: ["Blanco", "Negro"],
@@ -66,6 +69,7 @@ const itemsPerPage = 25;
 const inputClass = "rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-950 disabled:bg-zinc-100 disabled:text-zinc-500";
 const productTypes = ["Polo", "Polera", "Hoodie", "Pantalon", "Short", "Gorra", "Accesorio"];
 const collectionOptions = ["SuperStars", "Romantic", "GYM", "Basicos", "Edicion limitada"];
+const subcollectionOptions = ["Cristiano Ronaldo", "Lionel Messi", "Neymar", "Ronaldinho", "Girlfriend", "Gym Humor", "Romantic"];
 const colorOptions = [
   { name: "Blanco", className: "bg-white ring-1 ring-zinc-300" },
   { name: "Negro", className: "bg-zinc-950" },
@@ -149,6 +153,7 @@ export default function AdminInventoryPage() {
             productId: form.productId,
             parentSku: form.parentSku,
             product: form.product,
+            summary: form.summary,
             description: form.description,
             category: form.category,
             collection: form.collection,
@@ -280,9 +285,11 @@ export default function AdminInventoryPage() {
       productId: product.productId,
       parentSku: product.parentSku,
       product: product.product,
+      summary: product.summary || firstVariant?.summary || "",
       description: product.description || firstVariant?.description || "",
       category: product.category || firstVariant?.category || "Polo",
       collection: product.collection || "",
+      subcollection: product.subcollection || deriveSubcollection(product.product, product.collection),
       image: product.images[0] || firstVariant?.image || "",
       basePrice: product.basePrice ?? 0,
       colors,
@@ -536,7 +543,7 @@ export default function AdminInventoryPage() {
                           {product.images[0] ? <img src={product.images[0]} alt={product.product} className="h-14 w-14 rounded-xl object-cover ring-1 ring-zinc-200" /> : <div className="h-14 w-14 rounded-xl bg-zinc-100" />}
                           <div>
                             <p className="font-black text-zinc-950">{product.product}</p>
-                            <p className="font-mono text-xs text-zinc-500">{product.parentSku} · {product.collection || "Sin coleccion"} · {product.variants.length} variantes</p>
+                            <p className="font-mono text-xs text-zinc-500">{product.parentSku} · {product.collection || "Sin coleccion"} · {product.subcollection || "Sin subcoleccion"} · {product.variants.length} variantes</p>
                           </div>
                         </div>
                       </td>
@@ -636,7 +643,21 @@ export default function AdminInventoryPage() {
           <div className="space-y-5">
             <FormSection title="Producto padre" description="Edita el articulo comercial. IDs y SKUs se generan automaticamente.">
               <Field label="Producto">
-                <input type="text" value={productForm.product} onChange={(event) => setProductForm((previous) => ({ ...previous, product: event.target.value }))} placeholder="Nombre comercial" required className={inputClass} />
+                <input
+                  type="text"
+                  value={productForm.product}
+                  onChange={(event) => {
+                    const product = event.target.value;
+                    setProductForm((previous) => ({
+                      ...previous,
+                      product,
+                      subcollection: previous.subcollection || deriveSubcollection(product, previous.collection),
+                    }));
+                  }}
+                  placeholder="Nombre comercial"
+                  required
+                  className={inputClass}
+                />
               </Field>
               <Field label="Tipo de prenda">
                 <select value={productForm.category || "Polo"} onChange={(event) => setProductForm((previous) => ({ ...previous, category: event.target.value }))} className={inputClass}>
@@ -648,7 +669,18 @@ export default function AdminInventoryPage() {
                 </select>
               </Field>
               <Field label="Coleccion">
-                <select value={productForm.collection || ""} onChange={(event) => setProductForm((previous) => ({ ...previous, collection: event.target.value }))} className={inputClass}>
+                <select
+                  value={productForm.collection || ""}
+                  onChange={(event) => {
+                    const collection = event.target.value;
+                    setProductForm((previous) => ({
+                      ...previous,
+                      collection,
+                      subcollection: previous.subcollection || deriveSubcollection(previous.product, collection),
+                    }));
+                  }}
+                  className={inputClass}
+                >
                   <option value="">Selecciona coleccion</option>
                   {collectionOptions.map((collection) => (
                     <option key={collection} value={collection}>
@@ -657,6 +689,21 @@ export default function AdminInventoryPage() {
                   ))}
                 </select>
               </Field>
+              <Field label="Subcoleccion">
+                <input
+                  type="text"
+                  list="subcollection-options"
+                  value={productForm.subcollection || ""}
+                  onChange={(event) => setProductForm((previous) => ({ ...previous, subcollection: event.target.value }))}
+                  placeholder="Ej. Cristiano Ronaldo"
+                  className={inputClass}
+                />
+                <datalist id="subcollection-options">
+                  {subcollectionOptions.map((subcollection) => (
+                    <option key={subcollection} value={subcollection} />
+                  ))}
+                </datalist>
+              </Field>
               <Field label="Estado">
                 <select value={productForm.status ?? "active"} onChange={(event) => setProductForm((previous) => ({ ...previous, status: event.target.value as AdminInventoryItem["status"] }))} className={inputClass}>
                   <option value="active">Activo</option>
@@ -664,6 +711,17 @@ export default function AdminInventoryPage() {
                   <option value="archived">Archivado</option>
                 </select>
               </Field>
+              <div className="sm:col-span-2">
+                <Field label="Resumen (aparece arriba del precio en tienda)">
+                  <textarea
+                    rows={3}
+                    value={productForm.summary || ""}
+                    onChange={(event) => setProductForm((previous) => ({ ...previous, summary: event.target.value }))}
+                    placeholder="Texto corto que resume el producto..."
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
               <div className="sm:col-span-2">
                 <RichTextEditor
                   label="Descripcion completa"

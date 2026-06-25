@@ -20,6 +20,7 @@ export async function POST(request: Request) {
     productId: body.productId,
     parentSku: body.parentSku,
     product: body.product,
+    summary: body.summary,
     description: body.description,
     category: body.category,
     collection: body.collection,
