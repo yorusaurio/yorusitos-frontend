@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { establishSessionFromOAuthUser } from "@/backend/auth.server";
+import { establishSessionFromOAuthUser, resolveAuthProviderFromSupabaseUser } from "@/backend/auth.server";
 import { getSupabaseUserFromAccessToken } from "@/backend/supabase.server";
 import { sanitizeAuthRedirect } from "@/lib/auth-redirect";
+import type { AuthProvider } from "@/lib/auth";
 import { applySessionCookie } from "@/lib/session-cookie";
 
 async function readBody(request: Request) {
@@ -10,6 +11,14 @@ async function readBody(request: Request) {
   } catch {
     return {};
   }
+}
+
+function resolveRequestedProvider(value: unknown): AuthProvider | undefined {
+  if (value === "google" || value === "facebook" || value === "apple") {
+    return value;
+  }
+
+  return undefined;
 }
 
 export async function POST(request: Request) {
@@ -24,8 +33,9 @@ export async function POST(request: Request) {
 
   try {
     const supabaseUser = await getSupabaseUserFromAccessToken(accessToken);
+    const provider = resolveRequestedProvider(body.provider) ?? resolveAuthProviderFromSupabaseUser(supabaseUser);
     const user = await establishSessionFromOAuthUser(supabaseUser, {
-      provider: "google",
+      provider,
       rememberMe: true,
       termsAccepted: body.termsAccepted ?? true,
       marketingOptIn: body.marketingOptIn ?? false,
@@ -38,7 +48,7 @@ export async function POST(request: Request) {
 
     return applySessionCookie(response, user);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "No se pudo completar el inicio de sesión con Google.";
+    const message = error instanceof Error ? error.message : "No se pudo completar el inicio de sesión.";
     return NextResponse.json({ error: message }, { status: 401 });
   }
 }

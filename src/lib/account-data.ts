@@ -22,3 +22,16 @@ export interface WishlistItem {
 	collection: string;
 	image: string;
 }
+
+export interface AccountDashboardStats {
+	totalOrders: number;
+	activeOrders: number;
+	wishlistCount: number;
+	totalSpent: number;
+}
+
+export interface AccountDashboardData {
+	orders: AccountOrder[];
+	wishlist: WishlistItem[];
+	stats: AccountDashboardStats;
+}

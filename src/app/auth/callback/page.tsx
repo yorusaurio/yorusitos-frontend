@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { sanitizeAuthRedirect } from "@/lib/auth-redirect";
+import { oauthProviderLabel, parseOAuthProvider } from "@/lib/oauth";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createSupabaseBrowserClient, clearSupabaseBrowserSession } from "@/lib/supabase/client";
 
@@ -10,7 +11,8 @@ function AuthCallbackContent() {
   const router = useRouter();
   const { refreshSession } = useAuth();
   const searchParams = useSearchParams();
-  const [message, setMessage] = useState("Completando inicio de sesión con Google...");
+  const provider = parseOAuthProvider(searchParams.get("provider")) ?? "google";
+  const [message, setMessage] = useState(`Completando inicio de sesión con ${oauthProviderLabel(provider)}...`);
   const startedRef = useRef(false);
 
   useEffect(() => {
@@ -37,7 +39,7 @@ function AuthCallbackContent() {
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
         if (error || !data.session?.access_token) {
-          throw new Error(error?.message || "No se pudo validar la sesión de Google.");
+          throw new Error(error?.message || `No se pudo validar la sesión de ${oauthProviderLabel(provider)}.`);
         }
 
         const response = await fetch("/api/auth/oauth/complete", {
@@ -47,6 +49,7 @@ function AuthCallbackContent() {
             Authorization: `Bearer ${data.session.access_token}`,
           },
           body: JSON.stringify({
+            provider,
             next: searchParams.get("next"),
             termsAccepted: searchParams.get("terms") === "1",
             marketingOptIn: searchParams.get("marketing") === "1",
@@ -80,7 +83,7 @@ function AuthCallbackContent() {
     return () => {
       cancelled = true;
     };
-  }, [router, searchParams]);
+  }, [provider, refreshSession, router, searchParams]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white px-4">
@@ -94,7 +97,7 @@ export default function AuthCallbackPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-white px-4">
-          <p className="text-sm text-zinc-600">Completando inicio de sesión con Google...</p>
+          <p className="text-sm text-zinc-600">Completando inicio de sesión...</p>
         </div>
       }
     >

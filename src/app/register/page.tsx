@@ -12,7 +12,7 @@ function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTarget = sanitizeAuthRedirect(searchParams.get("next"));
-  const { user, loading, signUp, signInWithGoogle } = useAuth();
+  const { user, loading, signUp, signInWithGoogle, signInWithFacebook } = useAuth();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -74,6 +74,27 @@ function RegisterForm() {
       });
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "No pudimos crear tu cuenta con Google.");
+      setSubmitting(false);
+    }
+  };
+
+  const handleFacebookSignIn = async () => {
+    if (!termsAccepted) {
+      setError("Debes aceptar los terminos y condiciones para crear tu cuenta.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+
+    try {
+      await signInWithFacebook({
+        next: redirectTarget,
+        termsAccepted: true,
+        marketingOptIn,
+      });
+    } catch (submissionError) {
+      setError(submissionError instanceof Error ? submissionError.message : "No pudimos crear tu cuenta con Facebook.");
       setSubmitting(false);
     }
   };
@@ -192,7 +213,11 @@ function RegisterForm() {
           <div className="h-px flex-1 bg-zinc-200" />
         </div>
 
-        <SocialAuthButtons disabled={submitting} onGoogleClick={handleGoogleSignIn} />
+        <SocialAuthButtons
+          disabled={submitting}
+          onGoogleClick={handleGoogleSignIn}
+          onFacebookClick={handleFacebookSignIn}
+        />
       </section>
     </div>
   );

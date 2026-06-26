@@ -3,7 +3,12 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { AuthUser } from "@/lib/auth";
-import { sanitizeAuthRedirect } from "@/lib/auth-redirect";
+import {
+  buildOAuthCallbackUrl,
+  oauthProviderLabel,
+  type OAuthProvider,
+  type OAuthSignInOptions,
+} from "@/lib/oauth";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface AuthCredentials {
@@ -17,18 +22,14 @@ interface AuthCredentials {
 	marketingOptIn?: boolean;
 }
 
-interface GoogleSignInOptions {
-	next?: string;
-	termsAccepted?: boolean;
-	marketingOptIn?: boolean;
-}
-
 interface AuthContextValue {
 	user: AuthUser | null;
 	loading: boolean;
 	signIn: (credentials: AuthCredentials) => Promise<AuthUser>;
 	signUp: (credentials: AuthCredentials) => Promise<AuthUser>;
-	signInWithGoogle: (options?: GoogleSignInOptions) => Promise<void>;
+	signInWithOAuth: (provider: OAuthProvider, options?: OAuthSignInOptions) => Promise<void>;
+	signInWithGoogle: (options?: OAuthSignInOptions) => Promise<void>;
+	signInWithFacebook: (options?: OAuthSignInOptions) => Promise<void>;
 	updateProfile: (payload: Partial<Pick<AuthUser, "email" | "firstName" | "lastName" | "phone">>) => Promise<AuthUser>;
 	signOut: () => Promise<void>;
 	refreshSession: () => Promise<AuthUser | null>;
@@ -54,21 +55,6 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
 	}
 
 	return payload as T;
-}
-
-function buildOAuthCallbackUrl(options?: GoogleSignInOptions) {
-	const next = sanitizeAuthRedirect(options?.next);
-	const params = new URLSearchParams({ next });
-
-	if (options?.termsAccepted) {
-		params.set("terms", "1");
-	}
-
-	if (options?.marketingOptIn) {
-		params.set("marketing", "1");
-	}
-
-	return `${window.location.origin}/auth/callback?${params.toString()}`;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -120,31 +106,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		return payload.user;
 	};
 
-	const signInWithGoogle = async (options?: GoogleSignInOptions) => {
+	const signInWithOAuth = async (provider: OAuthProvider, options?: OAuthSignInOptions) => {
 		const supabase = createSupabaseBrowserClient();
-		const redirectTo = buildOAuthCallbackUrl(options);
+		const redirectTo = buildOAuthCallbackUrl(provider, options);
+		const oauthOptions: {
+			redirectTo: string;
+			skipBrowserRedirect: true;
+			queryParams?: Record<string, string>;
+			scopes?: string;
+		} = {
+			redirectTo,
+			skipBrowserRedirect: true,
+		};
+
+		if (provider === "google") {
+			oauthOptions.queryParams = {
+				access_type: "offline",
+				prompt: "consent",
+			};
+		}
+
+		if (provider === "facebook") {
+			oauthOptions.scopes = "email,public_profile";
+		}
+
 		const { data, error } = await supabase.auth.signInWithOAuth({
-			provider: "google",
-			options: {
-				redirectTo,
-				skipBrowserRedirect: true,
-				queryParams: {
-					access_type: "offline",
-					prompt: "consent",
-				},
-			},
+			provider,
+			options: oauthOptions,
 		});
 
 		if (error) {
-			throw new Error(error.message || "No se pudo iniciar sesión con Google.");
+			throw new Error(error.message || `No se pudo iniciar sesión con ${oauthProviderLabel(provider)}.`);
 		}
 
 		if (!data.url) {
-			throw new Error("No se recibió la URL de autenticación de Google.");
+			throw new Error(`No se recibió la URL de autenticación de ${oauthProviderLabel(provider)}.`);
 		}
 
 		window.location.assign(data.url);
 	};
+
+	const signInWithGoogle = (options?: OAuthSignInOptions) => signInWithOAuth("google", options);
+	const signInWithFacebook = (options?: OAuthSignInOptions) => signInWithOAuth("facebook", options);
 
 	const updateProfile = async (
 		payload: Partial<Pick<AuthUser, "email" | "firstName" | "lastName" | "phone">>
@@ -165,7 +168,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	return (
 		<AuthContext.Provider
-			value={{ user, loading, signIn, signUp, signInWithGoogle, updateProfile, signOut, refreshSession }}
+			value={{
+				user,
+				loading,
+				signIn,
+				signUp,
+				signInWithOAuth,
+				signInWithGoogle,
+				signInWithFacebook,
+				updateProfile,
+				signOut,
+				refreshSession,
+			}}
 		>
 			{children}
 		</AuthContext.Provider>

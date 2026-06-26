@@ -15,7 +15,7 @@ function LoginForm() {
 	const searchParams = useSearchParams();
 	const redirectTarget = sanitizeAuthRedirect(searchParams.get("next"));
 	const oauthError = searchParams.get("error");
-	const { user, loading, signIn, signInWithGoogle } = useAuth();
+	const { user, loading, signIn, signInWithGoogle, signInWithFacebook } = useAuth();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
@@ -52,6 +52,18 @@ function LoginForm() {
 			await signInWithGoogle({ next: redirectTarget, termsAccepted: true });
 		} catch (submissionError) {
 			setError(submissionError instanceof Error ? submissionError.message : "No pudimos iniciar sesión con Google.");
+			setSubmitting(false);
+		}
+	};
+
+	const handleFacebookSignIn = async () => {
+		setSubmitting(true);
+		setError("");
+
+		try {
+			await signInWithFacebook({ next: redirectTarget, termsAccepted: true });
+		} catch (submissionError) {
+			setError(submissionError instanceof Error ? submissionError.message : "No pudimos iniciar sesión con Facebook.");
 			setSubmitting(false);
 		}
 	};
@@ -146,10 +158,14 @@ function LoginForm() {
 					<div className="h-px flex-1 bg-zinc-200" />
 				</div>
 
-				<SocialAuthButtons disabled={submitting} onGoogleClick={handleGoogleSignIn} />
+				<SocialAuthButtons
+					disabled={submitting}
+					onGoogleClick={handleGoogleSignIn}
+					onFacebookClick={handleFacebookSignIn}
+				/>
 
 				<p className="mt-6 text-xs leading-5 text-zinc-500">
-					Usamos Google solo para autenticarte. No publicaremos nada en tu cuenta sin tu permiso.
+					Usamos Google y Facebook solo para autenticarte. No publicaremos nada en tus cuentas sin tu permiso.
 				</p>
 			</section>
 		</div>

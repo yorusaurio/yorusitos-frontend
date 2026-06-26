@@ -174,11 +174,12 @@ export async function establishSessionFromOAuthUser(
 ) {
   const profile = await getProfile(supabaseUser.id);
   const roles = await getUserRoles(supabaseUser.id);
+  const provider = options?.provider ?? resolveAuthProviderFromSupabaseUser(supabaseUser);
   const user = createSessionUserFromSupabase({
     user: supabaseUser,
     profile,
     roles,
-    provider: options?.provider ?? "google",
+    provider,
     rememberMe: options?.rememberMe ?? true,
   });
 
@@ -188,6 +189,20 @@ export async function establishSessionFromOAuthUser(
   });
 
   return user;
+}
+
+export function resolveAuthProviderFromSupabaseUser(supabaseUser: SupabaseAuthUser): AuthProvider {
+  const appProvider = supabaseUser.app_metadata?.provider;
+  if (appProvider === "google" || appProvider === "facebook" || appProvider === "apple") {
+    return appProvider;
+  }
+
+  const userProvider = supabaseUser.user_metadata?.provider;
+  if (userProvider === "google" || userProvider === "facebook" || userProvider === "apple") {
+    return userProvider;
+  }
+
+  return "email";
 }
 
 export async function updateSupabaseProfile(currentUser: AuthUser, patch: Partial<Pick<AuthUser, "email" | "firstName" | "lastName" | "phone">>) {
