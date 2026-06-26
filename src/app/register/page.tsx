@@ -6,11 +6,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 
+import { sanitizeAuthRedirect } from "@/lib/auth-redirect";
+
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTarget = searchParams.get("next") || "/home";
-  const { user, loading, signUp, signInWithProvider } = useAuth();
+  const redirectTarget = sanitizeAuthRedirect(searchParams.get("next"));
+  const { user, loading, signUp, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -55,7 +57,7 @@ function RegisterForm() {
     }
   };
 
-  const handleProviderSignIn = async (provider: "google" | "facebook" | "apple") => {
+  const handleGoogleSignIn = async () => {
     if (!termsAccepted) {
       setError("Debes aceptar los terminos y condiciones para crear tu cuenta.");
       return;
@@ -65,11 +67,13 @@ function RegisterForm() {
     setError("");
 
     try {
-      await signInWithProvider(provider);
-      router.replace(redirectTarget);
+      await signInWithGoogle({
+        next: redirectTarget,
+        termsAccepted: true,
+        marketingOptIn,
+      });
     } catch (submissionError) {
-      setError(submissionError instanceof Error ? submissionError.message : "No pudimos crear tu cuenta.");
-    } finally {
+      setError(submissionError instanceof Error ? submissionError.message : "No pudimos crear tu cuenta con Google.");
       setSubmitting(false);
     }
   };
@@ -188,7 +192,7 @@ function RegisterForm() {
           <div className="h-px flex-1 bg-zinc-200" />
         </div>
 
-        <SocialAuthButtons actionLabel="Registrarme" onProviderClick={handleProviderSignIn} />
+        <SocialAuthButtons disabled={submitting} onGoogleClick={handleGoogleSignIn} />
       </section>
     </div>
   );

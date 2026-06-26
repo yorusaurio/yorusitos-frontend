@@ -40,7 +40,11 @@ export function createSessionUserFromSupabase(input: {
 }): AuthUser {
   const profileName = input.profile?.full_name ?? "";
   const metadata = input.user.user_metadata;
-  const names = splitFullName(profileName || metadataText(metadata, "full_name"));
+  const metadataFullName =
+    metadataText(metadata, "full_name") ||
+    metadataText(metadata, "name") ||
+    [metadataText(metadata, "given_name"), metadataText(metadata, "family_name")].filter(Boolean).join(" ");
+  const names = splitFullName(profileName || metadataFullName);
   const firstName = input.profile?.full_name ? names.firstName : metadataText(metadata, "first_name") || names.firstName;
   const lastName = input.profile?.full_name ? names.lastName : metadataText(metadata, "last_name") || names.lastName;
 
@@ -156,6 +160,33 @@ export async function signUpWithSupabase(input: {
     rememberMe: input.rememberMe,
   });
   await upsertProfile(user, { termsAccepted: true, marketingOptIn: input.marketingOptIn ?? false });
+  return user;
+}
+
+export async function establishSessionFromOAuthUser(
+  supabaseUser: SupabaseAuthUser,
+  options?: {
+    provider?: AuthProvider;
+    rememberMe?: boolean;
+    termsAccepted?: boolean;
+    marketingOptIn?: boolean;
+  },
+) {
+  const profile = await getProfile(supabaseUser.id);
+  const roles = await getUserRoles(supabaseUser.id);
+  const user = createSessionUserFromSupabase({
+    user: supabaseUser,
+    profile,
+    roles,
+    provider: options?.provider ?? "google",
+    rememberMe: options?.rememberMe ?? true,
+  });
+
+  await upsertProfile(user, {
+    termsAccepted: options?.termsAccepted ?? true,
+    marketingOptIn: options?.marketingOptIn ?? false,
+  });
+
   return user;
 }
 

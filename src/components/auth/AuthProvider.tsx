@@ -1,7 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import type { AuthProvider as AuthProviderName, AuthUser } from "@/lib/auth";
+import type { AuthUser } from "@/lib/auth";
+import { sanitizeAuthRedirect } from "@/lib/auth-redirect";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface AuthCredentials {
 	email: string;
@@ -14,12 +16,18 @@ interface AuthCredentials {
 	marketingOptIn?: boolean;
 }
 
+interface GoogleSignInOptions {
+	next?: string;
+	termsAccepted?: boolean;
+	marketingOptIn?: boolean;
+}
+
 interface AuthContextValue {
 	user: AuthUser | null;
 	loading: boolean;
 	signIn: (credentials: AuthCredentials) => Promise<AuthUser>;
 	signUp: (credentials: AuthCredentials) => Promise<AuthUser>;
-	signInWithProvider: (provider: Exclude<AuthProviderName, "email">) => Promise<AuthUser>;
+	signInWithGoogle: (options?: GoogleSignInOptions) => Promise<void>;
 	updateProfile: (payload: Partial<Pick<AuthUser, "email" | "firstName" | "lastName" | "phone">>) => Promise<AuthUser>;
 	signOut: () => Promise<void>;
 	refreshSession: () => Promise<AuthUser | null>;
@@ -45,6 +53,21 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
 	}
 
 	return payload as T;
+}
+
+function buildOAuthCallbackUrl(options?: GoogleSignInOptions) {
+	const next = sanitizeAuthRedirect(options?.next);
+	const params = new URLSearchParams({ next });
+
+	if (options?.termsAccepted) {
+		params.set("terms", "1");
+	}
+
+	if (options?.marketingOptIn) {
+		params.set("marketing", "1");
+	}
+
+	return `${window.location.origin}/auth/callback?${params.toString()}`;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -86,15 +109,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		return payload.user;
 	};
 
-	const signInWithProvider = async (provider: Exclude<AuthProviderName, "email">) => {
-		const providerName = provider.charAt(0).toUpperCase() + provider.slice(1);
-		return signIn({
-			email: `${provider}@yorusito.social`,
-			password: provider,
-			firstName: providerName,
-			lastName: "Account",
-			rememberMe: true,
+	const signInWithGoogle = async (options?: GoogleSignInOptions) => {
+		const supabase = createSupabaseBrowserClient();
+		const redirectTo = buildOAuthCallbackUrl(options);
+		const { data, error } = await supabase.auth.signInWithOAuth({
+			provider: "google",
+			options: {
+				redirectTo,
+				skipBrowserRedirect: true,
+				queryParams: {
+					access_type: "offline",
+					prompt: "consent",
+				},
+			},
 		});
+
+		if (error) {
+			throw new Error(error.message || "No se pudo iniciar sesión con Google.");
+		}
+
+		if (!data.url) {
+			throw new Error("No se recibió la URL de autenticación de Google.");
+		}
+
+		window.location.assign(data.url);
 	};
 
 	const updateProfile = async (
@@ -116,7 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	return (
 		<AuthContext.Provider
-			value={{ user, loading, signIn, signUp, signInWithProvider, updateProfile, signOut, refreshSession }}
+			value={{ user, loading, signIn, signUp, signInWithGoogle, updateProfile, signOut, refreshSession }}
 		>
 			{children}
 		</AuthContext.Provider>

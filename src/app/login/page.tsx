@@ -8,11 +8,14 @@ import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/components/auth/AuthProvider";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 
+import { sanitizeAuthRedirect } from "@/lib/auth-redirect";
+
 function LoginForm() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const redirectTarget = searchParams.get("next") || "/home";
-	const { user, loading, signIn, signInWithProvider } = useAuth();
+	const redirectTarget = sanitizeAuthRedirect(searchParams.get("next"));
+	const oauthError = searchParams.get("error");
+	const { user, loading, signIn, signInWithGoogle } = useAuth();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
@@ -41,16 +44,14 @@ function LoginForm() {
 		}
 	};
 
-	const handleProviderSignIn = async (provider: "google" | "facebook" | "apple") => {
+	const handleGoogleSignIn = async () => {
 		setSubmitting(true);
 		setError("");
 
 		try {
-			await signInWithProvider(provider);
-			router.replace(redirectTarget);
+			await signInWithGoogle({ next: redirectTarget, termsAccepted: true });
 		} catch (submissionError) {
-			setError(submissionError instanceof Error ? submissionError.message : "No pudimos iniciar sesión.");
-		} finally {
+			setError(submissionError instanceof Error ? submissionError.message : "No pudimos iniciar sesión con Google.");
 			setSubmitting(false);
 		}
 	};
@@ -122,6 +123,9 @@ function LoginForm() {
 					</div>
 
 					{error && <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+					{!error && oauthError && (
+						<div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{oauthError}</div>
+					)}
 
 					<button
 						type="submit"
@@ -142,10 +146,10 @@ function LoginForm() {
 					<div className="h-px flex-1 bg-zinc-200" />
 				</div>
 
-				<SocialAuthButtons actionLabel="Iniciar sesión" onProviderClick={handleProviderSignIn} />
+				<SocialAuthButtons disabled={submitting} onGoogleClick={handleGoogleSignIn} />
 
 				<p className="mt-6 text-xs leading-5 text-zinc-500">
-					Etsy podría enviarte mensajes y notificaciones. Puedes cambiar tus preferencias en la configuración de tu cuenta. Nunca publicaremos sin tu permiso.
+					Usamos Google solo para autenticarte. No publicaremos nada en tu cuenta sin tu permiso.
 				</p>
 			</section>
 		</div>

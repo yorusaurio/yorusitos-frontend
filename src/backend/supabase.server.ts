@@ -61,6 +61,19 @@ async function parseSupabaseResponse<T>(response: Response): Promise<T> {
   return payload as T;
 }
 
+export async function getSupabaseUserFromAccessToken(accessToken: string) {
+  const anonKey = getAnonKey();
+  const response = await fetch(`${getSupabaseUrl()}/auth/v1/user`, {
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
+
+  return parseSupabaseResponse<SupabaseAuthUser>(response);
+}
+
 export async function supabaseAuthRequest<T>(path: string, init: RequestInit = {}) {
   const anonKey = getAnonKey();
   const response = await fetch(`${getSupabaseUrl()}/auth/v1${path}`, {
