@@ -3,10 +3,12 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { sanitizeAuthRedirect } from "@/lib/auth-redirect";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { createSupabaseBrowserClient, clearSupabaseBrowserSession } from "@/lib/supabase/client";
 
 function AuthCallbackContent() {
   const router = useRouter();
+  const { refreshSession } = useAuth();
   const searchParams = useSearchParams();
   const [message, setMessage] = useState("Completando inicio de sesión con Google...");
   const startedRef = useRef(false);
@@ -59,6 +61,7 @@ function AuthCallbackContent() {
         }
 
         await clearSupabaseBrowserSession();
+        await refreshSession();
 
         if (cancelled) return;
 

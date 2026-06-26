@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { AuthUser } from "@/lib/auth";
 import { sanitizeAuthRedirect } from "@/lib/auth-redirect";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -73,6 +74,8 @@ function buildOAuthCallbackUrl(options?: GoogleSignInOptions) {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<AuthUser | null>(null);
 	const [loading, setLoading] = useState(true);
+	const pathname = usePathname();
+	const previousPathnameRef = useRef(pathname);
 
 	const refreshSession = async () => {
 		try {
@@ -88,6 +91,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		refreshSession().finally(() => setLoading(false));
 	}, []);
+
+	useEffect(() => {
+		if (previousPathnameRef.current === "/auth/callback" && pathname !== "/auth/callback") {
+			refreshSession();
+		}
+
+		previousPathnameRef.current = pathname;
+	}, [pathname]);
 
 	const signIn = async (credentials: AuthCredentials) => {
 		const payload = await requestJson<{ user: AuthUser }>("/api/auth/login", {
