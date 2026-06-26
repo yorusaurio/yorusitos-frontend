@@ -1,13 +1,28 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
 
+const STORAGE_KEY = "yorusito-supabase-auth";
+
+let browserClient: SupabaseClient | null = null;
+
 export function createSupabaseBrowserClient() {
-  return createClient(getSupabaseUrl(), getSupabaseAnonKey(), {
-    auth: {
-      flowType: "pkce",
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-    },
-  });
+  if (!browserClient) {
+    browserClient = createClient(getSupabaseUrl(), getSupabaseAnonKey(), {
+      auth: {
+        flowType: "pkce",
+        autoRefreshToken: false,
+        // Required so the PKCE code verifier survives the Google redirect.
+        persistSession: true,
+        detectSessionInUrl: false,
+        storageKey: STORAGE_KEY,
+      },
+    });
+  }
+
+  return browserClient;
+}
+
+export async function clearSupabaseBrowserSession() {
+  const client = createSupabaseBrowserClient();
+  await client.auth.signOut({ scope: "local" });
 }

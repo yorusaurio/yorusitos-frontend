@@ -1,16 +1,20 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { sanitizeAuthRedirect } from "@/lib/auth-redirect";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createSupabaseBrowserClient, clearSupabaseBrowserSession } from "@/lib/supabase/client";
 
 function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [message, setMessage] = useState("Completando inicio de sesión con Google...");
+  const startedRef = useRef(false);
 
   useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+
     let cancelled = false;
 
     async function completeOAuth() {
@@ -53,6 +57,8 @@ function AuthCallbackContent() {
         if (!response.ok) {
           throw new Error(payload.error || "No se pudo crear la sesión.");
         }
+
+        await clearSupabaseBrowserSession();
 
         if (cancelled) return;
 
